@@ -40,6 +40,7 @@
   .metric-label { font-size: 13px; color: #555; flex: 1; }
   .metric-val { font-size: 20px; font-weight: bold; color: #2c3e50; text-align: right; }
   
+  /* 導航連結 */
   .nav-link { 
     display: inline-flex; align-items: center; color: #2980b9; text-decoration: none; font-weight: bold; font-size: 13px; margin-top: 4px; 
     padding: 4px 8px; background: #eef6fb; border-radius: 4px; transition: 0.2s; border: 1px solid #d6eaf8;
@@ -65,16 +66,8 @@
   .action-group { margin-top: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .btn-full { grid-column: span 2; }
   
-  .btn-share {
-    background: #06c755; color: white; border: none; padding: 12px;
-    border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .btn-group {
-    background: #3498db; color: white; border: none; padding: 12px;
-    border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px;
-    display: flex; align-items: center; justify-content: center;
-  }
+  .btn-share { background: #06c755; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; }
+  .btn-group { background: #3498db; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; }
   .btn-icon { margin-right: 6px; }
 
   .footer { margin-top: 25px; font-size: 12px; color: #aaa; text-align: center; }
@@ -128,12 +121,13 @@
       </div>
 
       <div class="action-group">
-        <button class="btn-share btn-full" onclick="shareResult()">
+               <button class="btn-share btn-full" onclick="shareResult()">
            <span class="btn-icon">💬</span> 一鍵分享檢測結果
         </button>
-               <button class="btn-group btn-full" onclick="joinLineGroup()">
+        <button class="btn-group btn-full" onclick="joinLineGroup()">
            <span class="btn-icon">👥</span> 進來取暖
         </button>
+
       </div>
 
     </div>
@@ -163,41 +157,55 @@
     fetch(sheetUrl)
       .then(response => response.text())
       .then(data => {
-        var rows = data.split('\n');
-        var cols = rows[1].split(','); 
-        function clean(str) { return str ? str.replace(/"/g, '').trim() : ""; }
+        try {
+            var rows = data.split('\n');
+            // 簡易 CSV 解析 (盡量避開逗號問題)
+            // 這裡我們假設使用者沒有在欄位內使用逗號，如果用了可能會切錯
+            var cols = rows[1].split(','); 
+            
+            function clean(str) { return str ? str.replace(/"/g, '').trim() : ""; }
 
-        if(cols.length >= 6) {
-           // A~F: 活動與設施
-           eventData.name = clean(cols[0]);
-           eventData.lat = parseFloat(cols[1]);
-           eventData.lng = parseFloat(cols[2]);
-           eventData.badName = clean(cols[3]);
-           eventData.badLat = parseFloat(cols[4]);
-           eventData.badLng = parseFloat(cols[5]);
+            if(cols.length >= 6) {
+               // A~F: 活動與設施
+               eventData.name = clean(cols[0]);
+               eventData.lat = parseFloat(cols[1]);
+               eventData.lng = parseFloat(cols[2]);
+               eventData.badName = clean(cols[3]);
+               eventData.badLat = parseFloat(cols[4]);
+               eventData.badLng = parseFloat(cols[5]);
 
-           // G: 里長的話
-           if(cols.length >= 7) eventData.chiefMsg = clean(cols[6]);
+               // G: 里長的話
+               if(cols.length >= 7) eventData.chiefMsg = clean(cols[6]);
 
-           // H~N: 客製化邏輯
-           if(cols.length >= 8 && clean(cols[7])) eventData.limitWest = parseFloat(cols[7]);
-           if(cols.length >= 9 && clean(cols[8])) eventData.limitEast = parseFloat(cols[8]);
-           if(cols.length >= 10 && clean(cols[9])) eventData.titleWest = clean(cols[9]);
-           if(cols.length >= 11 && clean(cols[10])) eventData.textWest = clean(cols[10]);
-           if(cols.length >= 12 && clean(cols[11])) eventData.titleEast = clean(cols[11]);
-           if(cols.length >= 13 && clean(cols[12])) eventData.textEast = clean(cols[12]);
-           if(cols.length >= 14 && clean(cols[13])) eventData.textNormal = clean(cols[13]);
+               // H~N: 客製化邏輯
+               if(cols.length >= 8 && clean(cols[7])) eventData.limitWest = parseFloat(cols[7]);
+               if(cols.length >= 9 && clean(cols[8])) eventData.limitEast = parseFloat(cols[8]);
+               if(cols.length >= 10 && clean(cols[9])) eventData.titleWest = clean(cols[9]);
+               if(cols.length >= 11 && clean(cols[10])) eventData.textWest = clean(cols[10]);
+               if(cols.length >= 12 && clean(cols[11])) eventData.titleEast = clean(cols[11]);
+               if(cols.length >= 13 && clean(cols[12])) eventData.textEast = clean(cols[12]);
+               if(cols.length >= 14 && clean(cols[13])) eventData.textNormal = clean(cols[13]);
 
-           document.getElementById('eventStatus').innerText = "● 本週熱點：" + eventData.name;
-           
-           // ★★★ V10.0 修正重點：使用 eventData.lat/lng 進行導航 ★★★
-           document.getElementById('goodName').innerText = eventData.name + " (導航)";
-           document.getElementById('goodLink').href = "https://www.google.com/maps?q=" + eventData.lat + "," + eventData.lng;
-           
-           document.getElementById('badName').innerText = eventData.badName + " (導航)";
-           document.getElementById('badLink').href = "https://www.google.com/maps?q=" + eventData.badLat + "," + eventData.badLng;
-           // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+               document.getElementById('eventStatus').innerText = "● 本週熱點：" + eventData.name;
+               
+               // ★★★ V10.1 導航連結修復 ★★★
+               // 使用 Google 標準查詢格式：https://www.google.com/maps?q=lat,lng
+               document.getElementById('goodName').innerText = eventData.name + " (導航)";
+               document.getElementById('goodLink').href = "https://www.google.com/maps?q=" + eventData.lat + "," + eventData.lng;
+               
+               document.getElementById('badName').innerText = eventData.badName + " (導航)";
+               document.getElementById('badLink').href = "https://www.google.com/maps?q=" + eventData.badLat + "," + eventData.badLng;
+               // ★★★★★★★★★★★★★★★★★
+            } else {
+                console.log("欄位數量不足");
+            }
+        } catch(e) {
+            console.log("資料解析錯誤: " + e);
+            document.getElementById('eventStatus').innerText = "● 資料讀取錯誤，請檢查Excel格式";
         }
+      })
+      .catch(err => {
+          document.getElementById('eventStatus').innerText = "● 連線失敗，請檢查網路或網址";
       });
   };
 
@@ -221,4 +229,13 @@
     
     if(eventData.chiefMsg) {
       document.getElementById("chiefMsg").innerText = eventData.chiefMsg;
-      document.getElementById("chief
+      document.getElementById("chiefBox").style.display = "block";
+    }
+
+    let role = ""; let text = ""; let styleClass = "";
+    
+    if (dBad < eventData.limitWest) {
+      role = eventData.titleWest;
+      text = eventData.textWest;
+      styleClass = "role-guardian";
+      shareText =
