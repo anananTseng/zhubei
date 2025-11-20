@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>竹北資源天秤</title>
 <style>
+  /* 樣式保持不變 */
   * { box-sizing: border-box; }
   body { 
     font-family: "Helvetica Neue", Helvetica, "Microsoft JhengHei", Arial, sans-serif; 
-    background-color: #f0f2f5; 
-    margin: 0; padding: 0; min-height: 100vh;
+    background-color: #f0f2f5; margin: 0; padding: 0; min-height: 100vh;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
   }
   .container { width: 100%; max-width: 450px; padding: 20px; }
@@ -40,11 +40,7 @@
   .metric-label { font-size: 13px; color: #555; flex: 1; }
   .metric-val { font-size: 20px; font-weight: bold; color: #2c3e50; text-align: right; }
   
-  /* 導航連結 */
-  .nav-link { 
-    display: inline-flex; align-items: center; color: #2980b9; text-decoration: none; font-weight: bold; font-size: 13px; margin-top: 4px; 
-    padding: 4px 8px; background: #eef6fb; border-radius: 4px; transition: 0.2s; border: 1px solid #d6eaf8;
-  }
+  .nav-link { display: inline-flex; align-items: center; color: #2980b9; text-decoration: none; font-weight: bold; font-size: 13px; margin-top: 4px; padding: 4px 8px; background: #eef6fb; border-radius: 4px; transition: 0.2s; border: 1px solid #d6eaf8; }
   .nav-link:hover { background: #d6eaf8; }
   .nav-icon { margin-right: 4px; font-size: 14px; }
 
@@ -65,12 +61,14 @@
   
   .action-group { margin-top: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .btn-full { grid-column: span 2; }
-  
   .btn-share { background: #06c755; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; }
   .btn-group { background: #3498db; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; }
   .btn-icon { margin-right: 6px; }
 
   .footer { margin-top: 25px; font-size: 12px; color: #aaa; text-align: center; }
+  
+  /* 錯誤訊息專用 */
+  .error-msg { color: red; font-size: 12px; margin-top: 10px; background: #ffe6e6; padding: 10px; border-radius: 5px; display: none; }
 </style>
 </head>
 <body>
@@ -81,6 +79,7 @@
     <div class="sub-header">離您最近的真相是？</div>
     
     <div id="eventStatus" class="live-tag">連線中...</div>
+    <div id="debugInfo" class="error-msg"></div>
     
     <p style="text-align: center; color: #666; font-size: 14px;">
       輸入位置，測測看這場活動<br>對您來說是「福利」還是「遙不可及」？
@@ -89,7 +88,6 @@
     <button class="btn" onclick="getLocation()">📍 啟動定位分析</button>
 
     <div id="output" class="result-area">
-      
       <div class="metric-row">
         <div class="metric-label">
           離本週焦點<br>
@@ -121,30 +119,29 @@
       </div>
 
       <div class="action-group">
-               <button class="btn-share btn-full" onclick="shareResult()">
+        <button class="btn-group btn-full" onclick="joinLineGroup()">
+           <span class="btn-icon">👥</span> 加入竹北在地討論社群
+        </button>
+        <button class="btn-share btn-full" onclick="shareResult()">
            <span class="btn-icon">💬</span> 一鍵分享檢測結果
         </button>
-        <button class="btn-group btn-full" onclick="joinLineGroup()">
-           <span class="btn-icon">👥</span> 進來取暖
-        </button>
-
       </div>
-
     </div>
     <div class="footer">本工具僅供市政討論參考</div>
   </div>
 </div>
 
 <script>
-  // ★★★ 請貼上您的 CSV 網址 ★★★
+  // ★★★ 請在這裡貼上您的 CSV 網址 ★★★
   var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtIyD2tguRY3fN-Pe9Fwe-07P_0MWG8G7Z6XNfOE9qpk2U-b_NjBRpA26o4FenSxkQMpbfvCLjyu46/pub?output=csv'; 
-  // ★★★★★★★★★★★★★★★★★
+  // ★★★★★★★★★★★★★★★★★★★★★
 
   var lineGroupUrl = 'https://line.me/ti/g2/RaDs4ZL02O8n-_VpCNC1f-kW95ZBsvyveYEyAw?utm_source=invitation&utm_medium=link_copy&utm_campaign=default';
 
+  // 預設資料，防呆用
   var eventData = {
-    name: "讀取中", lat: 0, lng: 0,
-    badName: "讀取中", badLat: 0, badLng: 0,
+    name: "資料讀取中", lat: 24.8135, lng: 121.0265,
+    badName: "資料讀取中", badLat: 24.8550, badLng: 120.9650,
     chiefMsg: "",
     limitWest: 3.5, limitEast: 3.0,
     titleWest: "城市守護者", textWest: "感謝您承擔了竹北的運轉重任。",
@@ -153,59 +150,105 @@
   };
   var shareText = "";
 
+  // ★★★ V11.0 核心：強力 CSV 解析器 (處理逗號與引號) ★★★
+  function parseCSV(text) {
+    const rows = [];
+    let currentRow = [];
+    let currentCell = '';
+    let insideQuote = false;
+    
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const nextChar = text[i+1];
+        
+        if (char === '"') {
+            if (insideQuote && nextChar === '"') { // 處理雙引號轉義
+                currentCell += '"';
+                i++;
+            } else {
+                insideQuote = !insideQuote;
+            }
+        } else if (char === ',' && !insideQuote) {
+            currentRow.push(currentCell.trim());
+            currentCell = '';
+        } else if ((char === '\r' || char === '\n') && !insideQuote) {
+            if (currentCell || currentRow.length > 0) {
+                currentRow.push(currentCell.trim());
+                rows.push(currentRow);
+            }
+            currentRow = [];
+            currentCell = '';
+            if (char === '\r' && nextChar === '\n') i++;
+        } else {
+            currentCell += char;
+        }
+    }
+    if (currentCell || currentRow.length > 0) {
+        currentRow.push(currentCell.trim());
+        rows.push(currentRow);
+    }
+    return rows;
+  }
+
   window.onload = function() {
+    console.log("開始連線...");
     fetch(sheetUrl)
-      .then(response => response.text())
+      .then(response => {
+        if (!response.ok) throw new Error("網路回應失敗: " + response.status);
+        return response.text();
+      })
       .then(data => {
         try {
-            var rows = data.split('\n');
-            // 簡易 CSV 解析 (盡量避開逗號問題)
-            // 這裡我們假設使用者沒有在欄位內使用逗號，如果用了可能會切錯
-            var cols = rows[1].split(','); 
+            // 使用強力解析器
+            var rows = parseCSV(data);
             
-            function clean(str) { return str ? str.replace(/"/g, '').trim() : ""; }
+            if (rows.length < 2) throw new Error("Excel 資料不足 2 列");
+            
+            var cols = rows[1]; // 讀取第 2 列 (Index 1)
+            
+            if(cols.length < 6) throw new Error("欄位數量不足 (至少要 A~F 欄)");
 
-            if(cols.length >= 6) {
-               // A~F: 活動與設施
-               eventData.name = clean(cols[0]);
-               eventData.lat = parseFloat(cols[1]);
-               eventData.lng = parseFloat(cols[2]);
-               eventData.badName = clean(cols[3]);
-               eventData.badLat = parseFloat(cols[4]);
-               eventData.badLng = parseFloat(cols[5]);
+            // 賦值 (加入更多防錯檢查)
+            eventData.name = cols[0] || "無名稱";
+            eventData.lat = parseFloat(cols[1]) || 24.8135;
+            eventData.lng = parseFloat(cols[2]) || 121.0265;
+            eventData.badName = cols[3] || "無名稱";
+            eventData.badLat = parseFloat(cols[4]) || 24.8550;
+            eventData.badLng = parseFloat(cols[5]) || 120.9650;
 
-               // G: 里長的話
-               if(cols.length >= 7) eventData.chiefMsg = clean(cols[6]);
+            if(cols[6]) eventData.chiefMsg = cols[6];
 
-               // H~N: 客製化邏輯
-               if(cols.length >= 8 && clean(cols[7])) eventData.limitWest = parseFloat(cols[7]);
-               if(cols.length >= 9 && clean(cols[8])) eventData.limitEast = parseFloat(cols[8]);
-               if(cols.length >= 10 && clean(cols[9])) eventData.titleWest = clean(cols[9]);
-               if(cols.length >= 11 && clean(cols[10])) eventData.textWest = clean(cols[10]);
-               if(cols.length >= 12 && clean(cols[11])) eventData.titleEast = clean(cols[11]);
-               if(cols.length >= 13 && clean(cols[12])) eventData.textEast = clean(cols[12]);
-               if(cols.length >= 14 && clean(cols[13])) eventData.textNormal = clean(cols[13]);
+            if(cols[7]) eventData.limitWest = parseFloat(cols[7]);
+            if(cols[8]) eventData.limitEast = parseFloat(cols[8]);
+            if(cols[9]) eventData.titleWest = cols[9];
+            if(cols[10]) eventData.textWest = cols[10];
+            if(cols[11]) eventData.titleEast = cols[11];
+            if(cols[12]) eventData.textEast = cols[12];
+            if(cols[13]) eventData.textNormal = cols[13];
 
-               document.getElementById('eventStatus').innerText = "● 本週熱點：" + eventData.name;
-               
-               // ★★★ V10.1 導航連結修復 ★★★
-               // 使用 Google 標準查詢格式：https://www.google.com/maps?q=lat,lng
-               document.getElementById('goodName').innerText = eventData.name + " (導航)";
-               document.getElementById('goodLink').href = "https://www.google.com/maps?q=" + eventData.lat + "," + eventData.lng;
-               
-               document.getElementById('badName').innerText = eventData.badName + " (導航)";
-               document.getElementById('badLink').href = "https://www.google.com/maps?q=" + eventData.badLat + "," + eventData.badLng;
-               // ★★★★★★★★★★★★★★★★★
-            } else {
-                console.log("欄位數量不足");
-            }
+            // 更新畫面
+            document.getElementById('eventStatus').innerText = "● 本週熱點：" + eventData.name;
+            
+            // 使用標準 Google Maps 連結
+            var mapBase = "https://www.google.com/maps?q=";
+            document.getElementById('goodName').innerText = eventData.name + " (導航)";
+            document.getElementById('goodLink').href = mapBase + eventData.lat + "," + eventData.lng;
+            
+            document.getElementById('badName').innerText = eventData.badName + " (導航)";
+            document.getElementById('badLink').href = mapBase + eventData.badLat + "," + eventData.badLng;
+            
         } catch(e) {
-            console.log("資料解析錯誤: " + e);
-            document.getElementById('eventStatus').innerText = "● 資料讀取錯誤，請檢查Excel格式";
+            console.error(e);
+            document.getElementById('eventStatus').innerText = "⚠️ 資料讀取錯誤";
+            document.getElementById('debugInfo').style.display = "block";
+            document.getElementById('debugInfo').innerText = "錯誤詳情：" + e.message + "\n請確認 CSV 網址正確，且 Excel 至少有 A~F 欄資料。";
         }
       })
       .catch(err => {
-          document.getElementById('eventStatus').innerText = "● 連線失敗，請檢查網路或網址";
+          console.error(err);
+          document.getElementById('eventStatus').innerText = "⚠️ 連線失敗";
+          document.getElementById('debugInfo').style.display = "block";
+          document.getElementById('debugInfo').innerText = "連線錯誤：無法讀取 Google 試算表。\n請檢查網址是否為 '逗號分隔值 (.csv)' 格式。\n目前網址：" + sheetUrl;
       });
   };
 
@@ -213,12 +256,12 @@
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(showPos, showErr);
     } else {
-      alert("您的裝置不支援定位");
+      alert("您的瀏覽器不支援定位功能，或權限被拒絕。");
     }
   }
 
   function showPos(position) { calc(position.coords.latitude, position.coords.longitude); }
-  function showErr(error) { alert("切換至【西區模擬視角】"); calc(24.845, 120.970); }
+  function showErr(error) { alert("定位失敗或拒絕授權。\n將為您切換至【西區模擬視角】。"); calc(24.845, 120.970); }
 
   function calc(lat, lng) {
     let dGood = getDist(lat, lng, eventData.lat, eventData.lng);
@@ -238,4 +281,44 @@
       role = eventData.titleWest;
       text = eventData.textWest;
       styleClass = "role-guardian";
-      shareText =
+      shareText = "😱 我家離「" + eventData.badName + "」只有 " + dBad.toFixed(1) + "km！但離「" + eventData.name + "」有 " + dGood.toFixed(1) + "km。快來測測：";
+    } 
+    else if (dGood < eventData.limitEast) {
+      role = eventData.titleEast;
+      text = eventData.textEast;
+      styleClass = "role-noble";
+      shareText = "✨ 我住在竹北資源核心區！離「" + eventData.name + "」只有 " + dGood.toFixed(1) + "km。快來測測你的資源距離：";
+    } 
+    else {
+      role = "一般市民";
+      text = eventData.textNormal; 
+      styleClass = "role-citizen";
+      shareText = "🤔 原來我離「" + eventData.name + "」有 " + dGood.toFixed(1) + "km。竹北的資源分配平均嗎？快來測測你的：";
+    }
+    
+    let box = document.getElementById("analysisBox");
+    box.className = "analysis-box " + styleClass;
+    document.getElementById("roleBadge").innerText = role;
+    document.getElementById("analysisText").innerText = text;
+    document.getElementById("output").style.display = "block";
+  }
+
+  function joinLineGroup() { window.open(lineGroupUrl); }
+
+  function shareResult() {
+    var url = window.location.href;
+    var finalMsg = shareText + "\n" + url;
+    window.open('https://line.me/R/msg/text/?' + encodeURIComponent(finalMsg));
+  }
+
+  function getDist(lat1,lon1,lat2,lon2) {
+    var R = 6371; 
+    var dLat = (lat2-lat1) * (Math.PI/180);
+    var dLon = (lon2-lon1) * (Math.PI/180);
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1*(Math.PI/180)) * Math.cos(lat2*(Math.PI/180)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    return R * c;
+  }
+</script>
+</body>
+</html>
