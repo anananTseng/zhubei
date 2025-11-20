@@ -90,10 +90,10 @@
     <div id="eventStatus" class="live-tag">連線中...</div>
     
     <p style="text-align: center; color: #666; font-size: 14px;">
-      輸入位置，系統將自動偵測<br>離您最近的設施與活動距離。
+      輸入位置，測測看這場活動<br>對您來說是「福利」還是「遙不可及」？
     </p>
 
-    <button class="btn" onclick="getLocation()">📍 啟動智慧偵測</button>
+    <button class="btn" onclick="getLocation()">📍 啟動定位分析</button>
 
     <div id="output" class="result-area">
       
@@ -109,7 +109,7 @@
       
       <div class="metric-row">
         <div class="metric-label">
-          離最近的嫌惡設施<br>
+          離對照指標<br>
           <a href="#" id="badLink" target="_blank" class="nav-link">
             <span class="nav-icon">⚠️</span><span id="badName">讀取中...</span>
           </a>
@@ -131,7 +131,7 @@
         <button class="btn-share btn-full" onclick="shareResult()">
            <span class="btn-icon">💬</span> 一鍵分享檢測結果
         </button>
-               <button class="btn-group btn-full" onclick="joinLineGroup()">
+       <button class="btn-group btn-full" onclick="joinLineGroup()">
            <span class="btn-icon">👥</span> 進來取暖
         </button>
       </div>
@@ -142,18 +142,17 @@
 </div>
 
 <script>
-  // ★★★ 請貼上您的 CSV 網址 ★★★
+  // ★★★ 請務必在此貼上您的 CSV 網址 ★★★
   var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtIyD2tguRY3fN-Pe9Fwe-07P_0MWG8G7Z6XNfOE9qpk2U-b_NjBRpA26o4FenSxkQMpbfvCLjyu46/pub?output=csv'; 
-  // ★★★★★★★★★★★★★★★★★
+  // ★★★★★★★★★★★★★★★★★★★★★
 
   var lineGroupUrl = 'https://line.me/ti/g2/RaDs4ZL02O8n-_VpCNC1f-kW95ZBsvyveYEyAw?utm_source=invitation&utm_medium=link_copy&utm_campaign=default';
 
-  var badFacilities = [];
   var eventData = {
     name: "讀取中", lat: 0, lng: 0,
     badName: "讀取中", badLat: 0, badLng: 0,
     chiefMsg: "",
-    // V8.0 新增：預設邏輯參數 (如果Excel沒填會用這些)
+    // 預設參數 (防呆用)
     limitWest: 3.5, limitEast: 3.0,
     titleWest: "城市守護者", textWest: "感謝您承擔了竹北的運轉重任。",
     titleEast: "資源核心區", textEast: "您位於竹北資源最豐富的區域。",
@@ -166,39 +165,40 @@
       .then(response => response.text())
       .then(data => {
         var rows = data.split('\n');
+        // V9.0 強制只讀第 2 列 (index 1)
         var cols = rows[1].split(','); 
         function clean(str) { return str ? str.replace(/"/g, '').trim() : ""; }
 
         if(cols.length >= 6) {
+           // A, B, C: 活動
            eventData.name = clean(cols[0]);
            eventData.lat = parseFloat(cols[1]);
            eventData.lng = parseFloat(cols[2]);
+           
+           // D, E, F: 設施 (V9.0 回歸手動指定)
+           eventData.badName = clean(cols[3]);
+           eventData.badLat = parseFloat(cols[4]);
+           eventData.badLng = parseFloat(cols[5]);
+
+           // G: 里長的話
            if(cols.length >= 7) eventData.chiefMsg = clean(cols[6]);
 
-           // ★★★ V8.0 讀取新的控制欄位 (H~M) ★★★
+           // H~M: 客製化邏輯
            if(cols.length >= 8 && clean(cols[7])) eventData.limitWest = parseFloat(cols[7]);
            if(cols.length >= 9 && clean(cols[8])) eventData.limitEast = parseFloat(cols[8]);
            if(cols.length >= 10 && clean(cols[9])) eventData.titleWest = clean(cols[9]);
            if(cols.length >= 11 && clean(cols[10])) eventData.textWest = clean(cols[10]);
            if(cols.length >= 12 && clean(cols[11])) eventData.titleEast = clean(cols[11]);
            if(cols.length >= 13 && clean(cols[12])) eventData.textEast = clean(cols[12]);
-           // ★★★★★★★★★★★★★★★★★★★★★★★
 
+           // 更新 UI
            document.getElementById('eventStatus').innerText = "● 本週熱點：" + eventData.name;
+           
            document.getElementById('goodName').innerText = eventData.name + " (導航)";
            document.getElementById('goodLink').href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(eventData.name);
-        }
-
-        for(var i=1; i<rows.length; i++) {
-            var c = rows[i].split(',');
-            if(c.length >= 6) {
-                var bName = clean(c[3]);
-                var bLat = parseFloat(c[4]);
-                var bLng = parseFloat(c[5]);
-                if(bName && !isNaN(bLat)) {
-                    badFacilities.push({name: bName, lat: bLat, lng: bLng});
-                }
-            }
+           
+           document.getElementById('badName').innerText = eventData.badName + " (導航)";
+           document.getElementById('badLink').href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(eventData.badName);
         }
       });
   };
@@ -215,41 +215,27 @@
   function showErr(error) { alert("切換至【西區模擬視角】"); calc(24.845, 120.970); }
 
   function calc(lat, lng) {
+    // 直接計算到 D 欄設施的距離
     let dGood = getDist(lat, lng, eventData.lat, eventData.lng);
-    let minBadDist = 99999;
-    let closestBad = null;
-
-    for(var i=0; i<badFacilities.length; i++) {
-        let d = getDist(lat, lng, badFacilities[i].lat, badFacilities[i].lng);
-        if(d < minBadDist) { minBadDist = d; closestBad = badFacilities[i]; }
-    }
-
-    if(closestBad) {
-        eventData.badName = closestBad.name;
-        document.getElementById('badName').innerText = closestBad.name + " (導航)";
-        document.getElementById('badLink').href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(closestBad.name);
-        document.getElementById('badDist').innerText = minBadDist.toFixed(1) + " km";
-    }
+    let dBad = getDist(lat, lng, eventData.badLat, eventData.badLng);
     
     document.getElementById("goodDist").innerText = dGood.toFixed(1) + " km";
+    document.getElementById("badDist").innerText = dBad.toFixed(1) + " km";
     
     if(eventData.chiefMsg) {
       document.getElementById("chiefMsg").innerText = eventData.chiefMsg;
       document.getElementById("chiefBox").style.display = "block";
     }
 
-    // ★★★ V8.0 使用 Excel 裡的邏輯 ★★★
     let role = ""; let text = ""; let styleClass = "";
-    let dBad = minBadDist;
     
-    // 邏輯：離嫌惡設施 < [H] 公里
+    // 級距邏輯 (使用 Excel 的參數)
     if (dBad < eventData.limitWest) {
       role = eventData.titleWest;
       text = eventData.textWest;
       styleClass = "role-guardian";
       shareText = "😱 我家離「" + eventData.badName + "」只有 " + dBad.toFixed(1) + "km！但離「" + eventData.name + "」有 " + dGood.toFixed(1) + "km。快來測測：";
     } 
-    // 邏輯：離活動 < [I] 公里
     else if (dGood < eventData.limitEast) {
       role = eventData.titleEast;
       text = eventData.textEast;
