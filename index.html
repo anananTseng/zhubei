@@ -155,7 +155,6 @@
     limitWest: 3.5, limitEast: 3.0,
     titleWest: "城市守護者", textWest: "感謝您承擔了竹北的運轉重任。",
     titleEast: "資源核心區", textEast: "您位於竹北資源最豐富的區域。",
-    // 這是預設值，如果Excel沒填N欄會用這個
     textNormal: "試著比較這兩個距離，您認為竹北的東、西區發展，目前是平衡的嗎？"
   };
   var shareText = "";
@@ -180,28 +179,24 @@
            // G: 里長的話
            if(cols.length >= 7) eventData.chiefMsg = clean(cols[6]);
 
-           // H~M: 既有的客製化邏輯
+           // H~N: 客製化邏輯
            if(cols.length >= 8 && clean(cols[7])) eventData.limitWest = parseFloat(cols[7]);
            if(cols.length >= 9 && clean(cols[8])) eventData.limitEast = parseFloat(cols[8]);
            if(cols.length >= 10 && clean(cols[9])) eventData.titleWest = clean(cols[9]);
            if(cols.length >= 11 && clean(cols[10])) eventData.textWest = clean(cols[10]);
            if(cols.length >= 12 && clean(cols[11])) eventData.titleEast = clean(cols[11]);
            if(cols.length >= 13 && clean(cols[12])) eventData.textEast = clean(cols[12]);
-           
-           // ★★★ V9.1 新增：讀取 N 欄 (第14格, index 13) ★★★
-           if(cols.length >= 14 && clean(cols[13])) {
-               eventData.textNormal = clean(cols[13]);
-           }
-           // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+           if(cols.length >= 14 && clean(cols[13])) eventData.textNormal = clean(cols[13]);
 
-           // 更新介面
            document.getElementById('eventStatus').innerText = "● 本週熱點：" + eventData.name;
            
+           // ★★★ V10.0 修正重點：使用 eventData.lat/lng 進行導航 ★★★
            document.getElementById('goodName').innerText = eventData.name + " (導航)";
-           document.getElementById('goodLink').href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(eventData.name);
+           document.getElementById('goodLink').href = "https://www.google.com/maps?q=" + eventData.lat + "," + eventData.lng;
            
            document.getElementById('badName').innerText = eventData.badName + " (導航)";
-           document.getElementById('badLink').href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(eventData.badName);
+           document.getElementById('badLink').href = "https://www.google.com/maps?q=" + eventData.badLat + "," + eventData.badLng;
+           // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
         }
       });
   };
@@ -226,54 +221,4 @@
     
     if(eventData.chiefMsg) {
       document.getElementById("chiefMsg").innerText = eventData.chiefMsg;
-      document.getElementById("chiefBox").style.display = "block";
-    }
-
-    let role = ""; let text = ""; let styleClass = "";
-    
-    if (dBad < eventData.limitWest) {
-      role = eventData.titleWest;
-      text = eventData.textWest;
-      styleClass = "role-guardian";
-      shareText = "😱 我家離「" + eventData.badName + "」只有 " + dBad.toFixed(1) + "km！但離「" + eventData.name + "」有 " + dGood.toFixed(1) + "km。快來測測：";
-    } 
-    else if (dGood < eventData.limitEast) {
-      role = eventData.titleEast;
-      text = eventData.textEast;
-      styleClass = "role-noble";
-      shareText = "✨ 我住在竹北資源核心區！離「" + eventData.name + "」只有 " + dGood.toFixed(1) + "km。快來測測你的資源距離：";
-    } 
-    else {
-      role = "一般市民";
-      // ★★★ 這裡會自動帶入您在 N 欄寫的文字 ★★★
-      text = eventData.textNormal; 
-      styleClass = "role-citizen";
-      shareText = "🤔 原來我離「" + eventData.name + "」有 " + dGood.toFixed(1) + "km。竹北的資源分配平均嗎？快來測測你的：";
-    }
-    
-    let box = document.getElementById("analysisBox");
-    box.className = "analysis-box " + styleClass;
-    document.getElementById("roleBadge").innerText = role;
-    document.getElementById("analysisText").innerText = text;
-    document.getElementById("output").style.display = "block";
-  }
-
-  function joinLineGroup() { window.open(lineGroupUrl); }
-
-  function shareResult() {
-    var url = window.location.href;
-    var finalMsg = shareText + "\n" + url;
-    window.open('https://line.me/R/msg/text/?' + encodeURIComponent(finalMsg));
-  }
-
-  function getDist(lat1,lon1,lat2,lon2) {
-    var R = 6371; 
-    var dLat = (lat2-lat1) * (Math.PI/180);
-    var dLon = (lon2-lon1) * (Math.PI/180);
-    var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1*(Math.PI/180)) * Math.cos(lat2*(Math.PI/180)) * Math.sin(dLon/2) * Math.sin(dLon/2);
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-    return R * c;
-  }
-</script>
-</body>
-</html>
+      document.getElementById("chief
