@@ -33,7 +33,6 @@
   }
   .btn:active { transform: scale(0.98); }
   
-  /* 結果區塊 */
   .result-area { display: none; margin-top: 25px; text-align: left; animation: popIn 0.4s ease-out; }
   @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
   
@@ -41,13 +40,12 @@
   .metric-label { font-size: 13px; color: #555; flex: 1; }
   .metric-val { font-size: 20px; font-weight: bold; color: #2c3e50; text-align: right; }
   
-  /* 導航連結樣式 */
   .nav-link { 
     display: inline-flex; align-items: center; color: #2980b9; text-decoration: none; font-weight: bold; font-size: 13px; margin-top: 4px; 
-    padding: 2px 6px; background: #eef6fb; border-radius: 4px; transition: 0.2s;
+    padding: 4px 8px; background: #eef6fb; border-radius: 4px; transition: 0.2s; border: 1px solid #d6eaf8;
   }
   .nav-link:hover { background: #d6eaf8; }
-  .nav-icon { margin-right: 4px; font-size: 12px; }
+  .nav-icon { margin-right: 4px; font-size: 14px; }
 
   .chief-msg-box { margin-top: 20px; background: #fff5f8; padding: 15px; border-radius: 10px; border-left: 5px solid #e91e63; display: none; }
   .chief-title { font-size: 13px; font-weight: bold; color: #e91e63; margin-bottom: 8px; }
@@ -64,9 +62,8 @@
   .role-citizen { background: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }
   .role-citizen .role-badge { background: #6c757d; color: #fff; }
   
-  /* 按鈕群組 */
   .action-group { margin-top: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .btn-full { grid-column: span 2; } /* 讓社群按鈕佔滿一行 */
+  .btn-full { grid-column: span 2; }
   
   .btn-share {
     background: #06c755; color: white; border: none; padding: 12px;
@@ -88,15 +85,15 @@
 <div class="container">
   <div class="card">
     <h2>⚖️ 竹北資源天秤</h2>
-    <div class="sub-header">您的距離，決定了您的權益？</div>
+    <div class="sub-header">離您最近的真相是？</div>
     
     <div id="eventStatus" class="live-tag">連線中...</div>
     
     <p style="text-align: center; color: #666; font-size: 14px;">
-      輸入位置，檢視這場活動<br>對您來說是「福利」還是「遙不可及」？
+      輸入位置，系統將自動偵測<br>離您最近的設施與活動距離。
     </p>
 
-    <button class="btn" onclick="getLocation()">📍 啟動定位分析</button>
+    <button class="btn" onclick="getLocation()">📍 啟動智慧偵測</button>
 
     <div id="output" class="result-area">
       
@@ -104,7 +101,7 @@
         <div class="metric-label">
           離本週焦點<br>
           <a href="#" id="goodLink" target="_blank" class="nav-link">
-            <span class="nav-icon">🗺️</span><span id="goodName">讀取中...</span>
+            <span class="nav-icon">📍</span><span id="goodName">讀取中...</span>
           </a>
         </div>
         <div class="metric-val" id="goodDist">...</div>
@@ -112,9 +109,9 @@
       
       <div class="metric-row">
         <div class="metric-label">
-          離參考指標<br>
+          離最近的嫌惡設施<br>
           <a href="#" id="badLink" target="_blank" class="nav-link">
-            <span class="nav-icon">🗺️</span><span id="badName">讀取中...</span>
+            <span class="nav-icon">⚠️</span><span id="badName">讀取中...</span>
           </a>
         </div>
         <div class="metric-val" id="badDist">...</div>
@@ -131,36 +128,37 @@
       </div>
 
       <div class="action-group">
+        <button class="btn-group btn-full" onclick="joinLineGroup()">
+           <span class="btn-icon">👥</span> 加入竹北在地討論社群
+        </button>
         <button class="btn-share btn-full" onclick="shareResult()">
            <span class="btn-icon">💬</span> 一鍵分享檢測結果
         </button>
-       
-       <button class="btn-group btn-full" onclick="joinLineGroup()">
-           <span class="btn-icon">👥</span> 進來取暖
-        </button>
-        
       </div>
 
     </div>
-    
     <div class="footer">本工具僅供市政討論參考</div>
   </div>
 </div>
 
 <script>
-  // ★★★ 請務必在此貼上您的 Google 試算表 CSV 網址 ★★★
+  // ★★★ 請貼上您的 CSV 網址 ★★★
   var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtIyD2tguRY3fN-Pe9Fwe-07P_0MWG8G7Z6XNfOE9qpk2U-b_NjBRpA26o4FenSxkQMpbfvCLjyu46/pub?output=csv'; 
-  // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+  // ★★★★★★★★★★★★★★★★★
 
-  // 您指定的 Line 社群連結
   var lineGroupUrl = 'https://line.me/ti/g2/RaDs4ZL02O8n-_VpCNC1f-kW95ZBsvyveYEyAw?utm_source=invitation&utm_medium=link_copy&utm_campaign=default';
 
+  var badFacilities = [];
   var eventData = {
     name: "讀取中", lat: 0, lng: 0,
     badName: "讀取中", badLat: 0, badLng: 0,
-    chiefMsg: ""
+    chiefMsg: "",
+    // V8.0 新增：預設邏輯參數 (如果Excel沒填會用這些)
+    limitWest: 3.5, limitEast: 3.0,
+    titleWest: "城市守護者", textWest: "感謝您承擔了竹北的運轉重任。",
+    titleEast: "資源核心區", textEast: "您位於竹北資源最豐富的區域。",
+    textNormal: "試著比較這兩個距離，您認為竹北的東、西區發展，目前是平衡的嗎？"
   };
-  
   var shareText = "";
 
   window.onload = function() {
@@ -175,19 +173,32 @@
            eventData.name = clean(cols[0]);
            eventData.lat = parseFloat(cols[1]);
            eventData.lng = parseFloat(cols[2]);
-           eventData.badName = clean(cols[3]);
-           eventData.badLat = parseFloat(cols[4]);
-           eventData.badLng = parseFloat(cols[5]);
            if(cols.length >= 7) eventData.chiefMsg = clean(cols[6]);
 
+           // ★★★ V8.0 讀取新的控制欄位 (H~M) ★★★
+           if(cols.length >= 8 && clean(cols[7])) eventData.limitWest = parseFloat(cols[7]);
+           if(cols.length >= 9 && clean(cols[8])) eventData.limitEast = parseFloat(cols[8]);
+           if(cols.length >= 10 && clean(cols[9])) eventData.titleWest = clean(cols[9]);
+           if(cols.length >= 11 && clean(cols[10])) eventData.textWest = clean(cols[10]);
+           if(cols.length >= 12 && clean(cols[11])) eventData.titleEast = clean(cols[11]);
+           if(cols.length >= 13 && clean(cols[12])) eventData.textEast = clean(cols[12]);
+           // ★★★★★★★★★★★★★★★★★★★★★★★
+
            document.getElementById('eventStatus').innerText = "● 本週熱點：" + eventData.name;
-           
-           // 更新名稱與導航連結
            document.getElementById('goodName').innerText = eventData.name + " (導航)";
-           document.getElementById('goodLink').href = "https://www.google.com/maps/search/?api=1&query=" + eventData.lat + "," + eventData.lng;
-           
-           document.getElementById('badName').innerText = eventData.badName + " (導航)";
-           document.getElementById('badLink').href = "https://www.google.com/maps/search/?api=1&query=" + eventData.badLat + "," + eventData.badLng;
+           document.getElementById('goodLink').href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(eventData.name);
+        }
+
+        for(var i=1; i<rows.length; i++) {
+            var c = rows[i].split(',');
+            if(c.length >= 6) {
+                var bName = clean(c[3]);
+                var bLat = parseFloat(c[4]);
+                var bLng = parseFloat(c[5]);
+                if(bName && !isNaN(bLat)) {
+                    badFacilities.push({name: bName, lat: bLat, lng: bLng});
+                }
+            }
         }
       });
   };
@@ -205,31 +216,49 @@
 
   function calc(lat, lng) {
     let dGood = getDist(lat, lng, eventData.lat, eventData.lng);
-    let dBad = getDist(lat, lng, eventData.badLat, eventData.badLng);
+    let minBadDist = 99999;
+    let closestBad = null;
+
+    for(var i=0; i<badFacilities.length; i++) {
+        let d = getDist(lat, lng, badFacilities[i].lat, badFacilities[i].lng);
+        if(d < minBadDist) { minBadDist = d; closestBad = badFacilities[i]; }
+    }
+
+    if(closestBad) {
+        eventData.badName = closestBad.name;
+        document.getElementById('badName').innerText = closestBad.name + " (導航)";
+        document.getElementById('badLink').href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(closestBad.name);
+        document.getElementById('badDist').innerText = minBadDist.toFixed(1) + " km";
+    }
     
     document.getElementById("goodDist").innerText = dGood.toFixed(1) + " km";
-    document.getElementById("badDist").innerText = dBad.toFixed(1) + " km";
     
-    if(eventData.chiefMsg && eventData.chiefMsg.length > 1) {
+    if(eventData.chiefMsg) {
       document.getElementById("chiefMsg").innerText = eventData.chiefMsg;
       document.getElementById("chiefBox").style.display = "block";
     }
 
+    // ★★★ V8.0 使用 Excel 裡的邏輯 ★★★
     let role = ""; let text = ""; let styleClass = "";
+    let dBad = minBadDist;
     
-    if (dGood > 5.0 && dBad < 3.0) {
-      role = "城市守護者";
-      text = "繁華的活動離您很遠，但城市的責任（" + eventData.badName + "）離您很近。感謝您承擔了竹北的運轉重任。";
+    // 邏輯：離嫌惡設施 < [H] 公里
+    if (dBad < eventData.limitWest) {
+      role = eventData.titleWest;
+      text = eventData.textWest;
       styleClass = "role-guardian";
-      shareText = "😱 我離「" + eventData.badName + "」只有 " + dBad.toFixed(1) + "km，離「" + eventData.name + "」卻有 " + dGood.toFixed(1) + "km！我是竹北邊緣人嗎？快來測測你的：";
-    } else if (dGood < 3.0 && dBad > 5.0) {
-      role = "資源核心區";
-      text = "您位於竹北資源最豐富的區域。請別忘了，您生活的便利，背後有西區居民在默默支撐。";
+      shareText = "😱 我家離「" + eventData.badName + "」只有 " + dBad.toFixed(1) + "km！但離「" + eventData.name + "」有 " + dGood.toFixed(1) + "km。快來測測：";
+    } 
+    // 邏輯：離活動 < [I] 公里
+    else if (dGood < eventData.limitEast) {
+      role = eventData.titleEast;
+      text = eventData.textEast;
       styleClass = "role-noble";
       shareText = "✨ 我住在竹北資源核心區！離「" + eventData.name + "」只有 " + dGood.toFixed(1) + "km。快來測測你的資源距離：";
-    } else {
+    } 
+    else {
       role = "一般市民";
-      text = "試著比較這兩個距離，您認為竹北的東、西區發展，目前是平衡的嗎？";
+      text = eventData.textNormal;
       styleClass = "role-citizen";
       shareText = "🤔 原來我離「" + eventData.name + "」有 " + dGood.toFixed(1) + "km。竹北的資源分配平均嗎？快來測測你的：";
     }
@@ -241,9 +270,7 @@
     document.getElementById("output").style.display = "block";
   }
 
-  function joinLineGroup() {
-    window.open(lineGroupUrl);
-  }
+  function joinLineGroup() { window.open(lineGroupUrl); }
 
   function shareResult() {
     var url = window.location.href;
