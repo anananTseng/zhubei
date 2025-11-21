@@ -14,17 +14,21 @@
             --card-bg: #ffffff;
             --text-color: #333;
             --gray-text: #666;
+            /* 狀態顏色 */
+            --status-coming: #f39c12; /* 橘色 */
+            --status-active: #27ae60; /* 綠色 */
+            --status-today: #e74c3c;  /* 紅色 */
+            --status-ended: #95a5a6;  /* 灰色 */
         }
         body { font-family: 'Noto Sans TC', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 0; line-height: 1.6; }
         
-        /* Header 優化 */
         header { background: linear-gradient(135deg, #1a2a3a, #2c3e50); color: white; padding: 2.5rem 1rem; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         header h1 { margin: 0; font-size: 2rem; letter-spacing: 2px; font-weight: 700; }
         header p { margin-top: 10px; opacity: 0.85; font-size: 1rem; font-weight: 300; }
 
         .container { max-width: 1100px; margin: 2rem auto; padding: 0 20px; }
         
-        /* 篩選控制列 */
+        /* 篩選與狀態列 */
         .controls-bar {
             background: white;
             padding: 15px 20px;
@@ -36,30 +40,23 @@
             flex-wrap: wrap;
             gap: 15px;
             margin-bottom: 2rem;
+            position: sticky; /* 讓篩選列黏在頂部 */
+            top: 0;
+            z-index: 100;
         }
-        .update-info { font-size: 0.9rem; color: #888; display: flex; align-items: center; }
-        .update-info::before { content: ''; display: inline-block; width: 8px; height: 8px; background-color: #2ecc71; border-radius: 50%; margin-right: 8px; }
         
         .filters { display: flex; gap: 15px; flex-wrap: wrap; }
         .filter-group { display: flex; align-items: center; gap: 8px; }
         .filter-group label { font-weight: 500; color: #555; font-size: 0.95rem; }
         
         select {
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-            font-size: 0.95rem;
-            color: #333;
-            background-color: #fff;
-            cursor: pointer;
-            transition: border-color 0.2s;
+            padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd;
+            font-size: 0.95rem; color: #333; background-color: #fff; cursor: pointer;
         }
-        select:hover { border-color: var(--accent-color); }
-        select:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1); }
+        select:focus { outline: none; border-color: var(--accent-color); }
 
         #loading { text-align: center; padding: 3rem; font-size: 1.2rem; color: var(--gray-text); }
         
-        /* 卡片列表 */
         .event-list { display: grid; gap: 1.5rem; grid-template-columns: 1fr; }
         @media (min-width: 768px) { .event-list { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); } }
 
@@ -75,9 +72,30 @@
             position: relative;
             overflow: hidden;
         }
-        .event-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.08); border-color: transparent; }
+        .event-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.08); }
         
-        /* 分類標籤 */
+        /* 已結束的活動樣式 */
+        .event-card.ended { opacity: 0.6; filter: grayscale(0.8); background-color: #f9f9f9; }
+        .event-card.ended:hover { transform: none; box-shadow: none; }
+
+        /* 狀態標籤 (左上角) */
+        .status-badge {
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: white;
+            border-bottom-right-radius: 12px;
+            z-index: 10;
+        }
+        .bg-coming { background-color: var(--status-coming); }
+        .bg-active { background-color: var(--status-active); }
+        .bg-today { background-color: var(--status-today); animation: pulse 2s infinite; }
+        .bg-ended { background-color: var(--status-ended); }
+
+        /* 分類標籤 (右上角) */
         .category-tag {
             position: absolute;
             top: 15px;
@@ -89,58 +107,25 @@
             color: #666;
             font-weight: 600;
         }
-        /* 針對不同分類給予不同顏色 (可選) */
-        .cat-celebration { background-color: #fff3cd; color: #856404; } /* 慶典-黃 */
-        .cat-art { background-color: #e2e3e5; color: #383d41; } /* 藝文-灰 */
-        .cat-lecture { background-color: #d1ecf1; color: #0c5460; } /* 講座-藍 */
+        .cat-celebration { background-color: #fff3cd; color: #856404; }
+        .cat-art { background-color: #e2e3e5; color: #383d41; }
+        .cat-lecture { background-color: #d1ecf1; color: #0c5460; }
 
-        .event-date {
-            color: var(--accent-color);
-            font-weight: 700;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-        }
-        .event-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin: 0 0 15px 0;
-            color: var(--primary-color);
-            line-height: 1.4;
-            flex-grow: 1; /* 讓標題撐開高度 */
-        }
+        .event-date { color: var(--accent-color); font-weight: 700; font-size: 0.9rem; margin-bottom: 8px; margin-top: 15px; display: flex; align-items: center; }
+        .event-title { font-size: 1.3rem; font-weight: 700; margin: 0 0 15px 0; color: var(--primary-color); line-height: 1.4; flex-grow: 1; }
 
-        .info-row {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            color: #555;
-        }
-        .info-icon {
-            min-width: 18px;
-            height: 18px;
-            margin-right: 10px;
-            margin-top: 3px;
-            fill: #888;
-        }
+        .info-row { display: flex; align-items: flex-start; margin-bottom: 8px; font-size: 0.9rem; color: #555; }
+        .info-icon { min-width: 18px; height: 18px; margin-right: 10px; margin-top: 3px; fill: #888; }
 
-        .btn-link {
-            margin-top: 20px;
-            display: block;
-            width: 100%;
-            text-align: center;
-            padding: 10px 0;
-            background-color: var(--primary-color);
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: background 0.2s;
-        }
+        .btn-link { margin-top: 20px; display: block; width: 100%; text-align: center; padding: 10px 0; background-color: var(--primary-color); color: white; text-decoration: none; border-radius: 8px; font-weight: 500; transition: background 0.2s; }
         .btn-link:hover { background-color: #34495e; }
         .btn-link.disabled { background-color: #e9ecef; color: #adb5bd; cursor: default; pointer-events: none; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
 
         footer { text-align: center; padding: 3rem 1rem; font-size: 0.85rem; color: #999; margin-top: 2rem; border-top: 1px solid #eee; }
     </style>
@@ -154,19 +139,22 @@
 
     <div class="container">
         <div class="controls-bar">
-            <div class="update-info" id="update-time">資料更新中...</div>
-            
+            <div class="update-info" id="update-time">資料載入中...</div>
             <div class="filters">
                 <div class="filter-group">
                     <label for="month-filter">月份</label>
-                    <select id="month-filter">
-                        <option value="all">全部月份</option>
-                    </select>
+                    <select id="month-filter"><option value="all">全部月份</option></select>
                 </div>
                 <div class="filter-group">
                     <label for="cat-filter">類型</label>
-                    <select id="cat-filter">
-                        <option value="all">全部類型</option>
+                    <select id="cat-filter"><option value="all">全部類型</option></select>
+                </div>
+                <div class="filter-group">
+                    <label for="status-filter">狀態</label>
+                    <select id="status-filter">
+                        <option value="all">全部</option>
+                        <option value="active" selected>進行中/即將開始</option>
+                        <option value="ended">已結束</option>
                     </select>
                 </div>
             </div>
@@ -176,9 +164,7 @@
         <div class="event-list" id="event-container"></div>
     </div>
 
-    <footer>
-        <p>資料來源：竹北市公所、新竹縣政府、各大售票平台彙整</p>
-    </footer>
+    <footer><p>資料來源：竹北市公所、新竹縣政府、各大售票平台彙整</p></footer>
 
     <script>
         // 請確認您的 Google Sheet CSV 發布連結
@@ -188,9 +174,7 @@
 
         function init() {
             Papa.parse(CSV_URL, {
-                download: true,
-                header: true,
-                skipEmptyLines: true,
+                download: true, header: true, skipEmptyLines: true,
                 complete: function(results) {
                     allEvents = results.data;
                     initFilters(allEvents);
@@ -203,55 +187,76 @@
             });
         }
 
+        // --- 核心功能：計算活動狀態 ---
+        function calculateStatus(dateStr) {
+            // 解析日期格式，支援 "2025/11/29" 或 "2025/11/12-2025/11/30"
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // 歸零時間，只比對日期
+
+            // 抓出所有日期數字
+            const dates = dateStr.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/g);
+            
+            if (!dates) return { code: 'unknown', text: '日期未定', class: 'bg-ended' };
+
+            const startDate = new Date(dates[0]);
+            let endDate = dates.length > 1 ? new Date(dates[1]) : new Date(dates[0]); // 如果只有一天，結束日=開始日
+
+            const diffStart = Math.ceil((startDate - today) / (1000 * 60 * 60 * 24));
+            const diffEnd = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+
+            if (diffEnd < 0) {
+                return { code: 'ended', text: '已結束', class: 'bg-ended' };
+            } else if (diffStart === 0) {
+                return { code: 'today', text: '就是今天！', class: 'bg-today' };
+            } else if (diffStart > 0) {
+                return { code: 'coming', text: `倒數 ${diffStart} 天`, class: 'bg-coming' };
+            } else {
+                // diffStart < 0 && diffEnd >= 0 (正在區間內)
+                return { code: 'active', text: `進行中 (剩 ${diffEnd} 天)`, class: 'bg-active' };
+            }
+        }
+
         function initFilters(data) {
             const monthSet = new Set();
             const catSet = new Set();
+            const monthSelect = document.getElementById('month-filter');
+            const catSelect = document.getElementById('cat-filter');
+            const statusSelect = document.getElementById('status-filter');
 
             data.forEach(item => {
-                // 抓取日期
-                let dateStr = item['活動日期'] || item['日期'] || '';
+                let dateStr = item['活動日期'] || '';
                 let match = dateStr.match(/(\d{4})[\/\-](\d{1,2})/);
                 if (match) monthSet.add(`${match[1]}年${match[2]}月`);
-
-                // 抓取類別
-                let cat = item['活動類別'] || item['類別'] || item['分類'];
-                if (cat && cat.trim() !== '') catSet.add(cat.trim());
+                
+                let cat = item['活動類別'] || item['類別'];
+                if (cat) catSet.add(cat.trim());
             });
 
-            // 生成月份選項 (排序)
-            const monthSelect = document.getElementById('month-filter');
-            Array.from(monthSet).sort((a, b) => a.localeCompare(b, 'zh-Hant-TW', { numeric: true })).forEach(m => {
-                monthSelect.add(new Option(m, m));
-            });
+            Array.from(monthSet).sort((a,b)=>a.localeCompare(b,'zh-Hant-TW',{numeric:true})).forEach(m => monthSelect.add(new Option(m, m)));
+            Array.from(catSet).forEach(c => catSelect.add(new Option(c, c)));
 
-            // 生成類別選項
-            const catSelect = document.getElementById('cat-filter');
-            Array.from(catSet).forEach(c => {
-                catSelect.add(new Option(c, c));
-            });
-
-            // 綁定監聽事件
             const handleFilter = () => {
                 const mVal = monthSelect.value;
                 const cVal = catSelect.value;
+                const sVal = statusSelect.value;
 
                 const filtered = data.filter(item => {
-                    let dateStr = item['活動日期'] || '';
-                    let catStr = item['活動類別'] || '';
+                    const status = calculateStatus(item['活動日期'] || '');
                     
-                    // 月份比對
+                    // 狀態篩選
+                    if (sVal === 'active' && status.code === 'ended') return false;
+                    if (sVal === 'ended' && status.code !== 'ended') return false;
+
+                    // 月份篩選
                     let monthMatch = true;
                     if (mVal !== 'all') {
                         let [y, m] = mVal.replace('年', '/').replace('月', '').split('/');
-                        // 寬鬆比對：只要日期字串包含 2025/11 或 2025-11
+                        let dateStr = item['活動日期'] || '';
                         monthMatch = dateStr.includes(`${y}/${m}`) || dateStr.includes(`${y}-${m}`) || dateStr.includes(`${y}/${m.padStart(2,'0')}`);
                     }
 
-                    // 類別比對
-                    let catMatch = true;
-                    if (cVal !== 'all') {
-                        catMatch = catStr.includes(cVal);
-                    }
+                    // 類別篩選
+                    let catMatch = cVal === 'all' ? true : (item['活動類別'] || '').includes(cVal);
 
                     return monthMatch && catMatch;
                 });
@@ -260,6 +265,10 @@
 
             monthSelect.addEventListener('change', handleFilter);
             catSelect.addEventListener('change', handleFilter);
+            statusSelect.addEventListener('change', handleFilter);
+            
+            // 初始執行一次篩選 (預設不顯示已結束)
+            handleFilter(); 
         }
 
         function renderEvents(data) {
@@ -271,42 +280,52 @@
             container.innerHTML = '';
 
             const now = new Date();
-            updateTime.innerText = `更新時間：${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+            updateTime.innerText = `最後更新：${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
 
             if (data.length === 0) {
                 container.innerHTML = '<div style="text-align:center; width:100%; padding:2rem; color:#888;">沒有符合條件的活動。</div>';
                 return;
             }
 
+            // 排序：讓「進行中」和「倒數少」的排在前面
+            data.sort((a, b) => {
+                 // 簡單邏輯：先比日期字串 (未來可優化為真實日期排序)
+                 return (a['活動日期'] || '').localeCompare(b['活動日期'] || '');
+            });
+
             data.forEach(item => {
-                // 欄位容錯處理
-                const name = item['活動名稱'] || item['名稱'];
+                const name = item['活動名稱'];
                 if (!name) return;
 
-                const date = item['活動日期'] || '詳見內文';
-                const place = item['活動地點'] || item['地點'] || '詳見官網';
-                const org = item['主辦單位'] || item['主辦'] || '';
-                const cat = item['活動類別'] || '一般活動';
-                let link = item['連結'] || item['網址'] || '';
-                link = link.trim();
+                const dateStr = item['活動日期'] || '';
+                const status = calculateStatus(dateStr); // 取得狀態
 
-                // 設定類別顏色樣式
+                const place = item['活動地點'] || '詳見官網';
+                const org = item['主辦單位'] || '';
+                const cat = item['活動類別'] || '一般活動';
+                let link = (item['連結'] || '').trim();
+
+                // 類別顏色
                 let catClass = '';
                 if (cat.includes('慶典') || cat.includes('戶外')) catClass = 'cat-celebration';
                 else if (cat.includes('藝文') || cat.includes('展')) catClass = 'cat-art';
-                else if (cat.includes('講座') || cat.includes('課程')) catClass = 'cat-lecture';
+                else if (cat.includes('講座')) catClass = 'cat-lecture';
 
                 let linkHtml = link.startsWith('http') 
                     ? `<a href="${link}" target="_blank" class="btn-link">查看活動詳情</a>`
                     : `<div class="btn-link disabled">無連結資訊</div>`;
 
+                // 如果已結束，加上 .ended class 讓卡片變灰
+                const cardClass = status.code === 'ended' ? 'event-card ended' : 'event-card';
+
                 const card = document.createElement('div');
-                card.className = 'event-card';
+                card.className = cardClass;
                 card.innerHTML = `
+                    <div class="status-badge ${status.class}">${status.text}</div>
                     <span class="category-tag ${catClass}">${cat}</span>
                     <div class="event-date">
                         <svg class="info-icon" style="fill:var(--accent-color)" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
-                        ${date}
+                        ${dateStr}
                     </div>
                     <h3 class="event-title">${name}</h3>
                     <div class="info-row">
