@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>竹北市近期活動一覽表</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50; /* 深藍色主調 */
+            --accent-color: #27ae60;  /* 綠色點綴 (代表竹北活力) */
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --gray-text: #666;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        /* 頁首設計 */
+        header {
+            background: linear-gradient(135deg, var(--primary-color), #34495e);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+        }
+
+        header p {
+            margin-top: 10px;
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        /* 容器設定 */
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 15px;
+        }
+
+        /* 載入中動畫 */
+        #loading {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.2rem;
+            color: var(--gray-text);
+        }
+
+        /* 搜尋與過濾區 (預留擴充) */
+        .controls {
+            margin-bottom: 1.5rem;
+            text-align: right;
+            font-size: 0.9rem;
+            color: var(--gray-text);
+        }
+
+        /* 表格/卡片佈局 */
+        .event-list {
+            display: grid;
+            gap: 1.5rem;
+            grid-template-columns: 1fr; /* 手機版單欄 */
+        }
+
+        /* 響應式：平板以上雙欄 */
+        @media (min-width: 768px) {
+            .event-list {
+                grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+            }
+        }
+
+        /* 卡片設計 */
+        .event-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 5px solid var(--accent-color);
+            position: relative;
+        }
+
+        .event-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .event-date {
+            display: inline-block;
+            background-color: #e8f5e9;
+            color: #1b5e20;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .event-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+        }
+
+        .event-info {
+            font-size: 0.95rem;
+            color: var(--gray-text);
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .event-info svg {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            fill: var(--gray-text);
+        }
+
+        .btn-link {
+            display: block;
+            width: 100%;
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px 0;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .btn-link:hover {
+            background-color: #34495e;
+        }
+        
+        .btn-link.disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-top: 3rem;
+            border-top: 1px solid #eee;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>竹北市近期活動快訊</h1>
+        <p>彙整竹北最新藝文、親子與社區活動資訊</p>
+    </header>
+
+    <div class="container">
+        <div class="controls" id="update-time">
+            資料載入中...
+        </div>
+
+        <div id="loading">
+            正在讀取最新活動資料庫...
+        </div>
+
+        <div class="event-list" id="event-container">
+            </div>
+    </div>
+
+    <footer>
+        <p>資料來源：網路公開資訊彙整 / 自動更新系統</p>
+    </footer>
+
+    <script>
+        // 設定您的 Google Sheet ID (從連結中取得)
+        const SHEET_ID = '1I2IImuj4TH6XmTDjSfHMneVI5RkUern4EWBJ1zb7f9k';
+        // 設定工作表名稱 (通常第一張表是 '工作表1' 或 'Sheet1')
+        // 如果您的分頁名稱改過，請在這裡修改 (例如改為 '活動明細')
+        const SHEET_NAME = '工作表1'; 
+        
+        // 組合出 CSV 的下載連結
+        const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+        function init() {
+            Papa.parse(CSV_URL, {
+                download: true,
+                header: true, // 告訴程式第一行是標題
+                complete: function(results) {
+                    const data = results.data;
+                    renderEvents(data);
+                },
+                error: function(err) {
+                    console.error("Error:", err);
+                    document.getElementById('loading').innerText = "讀取資料失敗，請確認試算表是否已發布為網頁。";
+                }
+            });
+        }
+
+        function renderEvents(data) {
+            const container = document.getElementById('event-container');
+            const loading = document.getElementById('loading');
+            const updateTime = document.getElementById('update-time');
+            
+            loading.style.display = 'none';
+            
+            // 更新時間顯示
+            const now = new Date();
+            updateTime.innerText = `最後更新查閱：${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+
+            // 反轉資料陣列，讓最新的(通常在下面)顯示在上面，或者您可以依照需求不反轉
+            // 這裡假設您希望按照表格順序顯示，如果是想讓最晚的日期在最上面，需要另外寫排序邏輯
+            // data.reverse(); 
+
+            data.forEach(item => {
+                // 檢查必要欄位是否有值，避免顯示空行
+                if (!item['活動名稱'] || item['活動名稱'].trim() === '') return;
+
+                // 建立卡片 HTML
+                const card = document.createElement('div');
+                card.className = 'event-card';
+
+                // 處理連結
+                let linkBtn = '';
+                if (item['連結'] && item['連結'].startsWith('http')) {
+                    linkBtn = `<a href="${item['連結']}" target="_blank" class="btn-link">查看官方詳情</a>`;
+                } else {
+                    linkBtn = `<span class="btn-link disabled">暫無連結</span>`;
+                }
+
+                // 處理日期 (如果表格欄位是 '活動日期(若是長時間只能大概顯示了)'，這邊要對應)
+                // 為了程式穩健，這裡嘗試讀取包含 '日期' 字眼的欄位
+                let dateKey = Object.keys(item).find(key => key.includes('日期'));
+                let nameKey = Object.keys(item).find(key => key.includes('名稱'));
+                let placeKey = Object.keys(item).find(key => key.includes('地點') || key.includes('場地'));
+                let orgKey = Object.keys(item).find(key => key.includes('主辦'));
+
+                const date = item[dateKey] || '未定';
+                const name = item[nameKey] || '未命名活動';
+                const place = item[placeKey] || '地點待定';
+                const org = item[orgKey] || '相關單位';
+
+                card.innerHTML = `
+                    <div class="event-date">${date}</div>
+                    <h3 class="event-title">${name}</h3>
+                    <div class="event-info">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                        ${place}
+                    </div>
+                    <div class="event-info">
+                        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        ${org}
+                    </div>
+                    ${linkBtn}
+                `;
+
+                container.appendChild(card);
+            });
+
+            if (container.children.length === 0) {
+                container.innerHTML = '<p style="text-align:center; width:100%;">目前沒有活動資料。</p>';
+            }
+        }
+
+        // 啟動程式
+        init();
+    </script>
+</body>
+</html>
