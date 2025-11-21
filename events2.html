@@ -198,7 +198,7 @@
         const SHEET_NAME = '活動'; 
         
         // 組合出 CSV 的下載連結
-        const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+        const CSV_URL = `https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-St7MX96Iy6KCTUt15jzZEm2H8WVF8pK4iJj4qL7j2oTCxCKopoak0xgHq5RzjKNEmO7JgsXF389i/pub?output=csv`;
 
         function init() {
             Papa.parse(CSV_URL, {
