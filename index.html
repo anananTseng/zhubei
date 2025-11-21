@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>竹北資源天秤</title>
 <style>
-  /* --- V12 原有樣式 (保持不變) --- */
+  /* --- V12.5/V15 共用樣式 --- */
   * { box-sizing: border-box; }
   body { 
     font-family: "Helvetica Neue", Helvetica, "Microsoft JhengHei", Arial, sans-serif; 
@@ -21,7 +21,7 @@
   .sub-header { font-size: 13px; color: #7f8c8d; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; text-align: center; }
   .live-tag { display: block; background: #e8f5e9; color: #2e7d32; padding: 8px; border-radius: 6px; font-size: 14px; font-weight: bold; margin-bottom: 20px; border: 1px solid #c8e6c9; text-align: center; }
   .btn { background: #2c3e50; color: white; border: none; padding: 16px 0; font-size: 18px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: bold; transition: 0.2s; box-shadow: 0 4px 12px rgba(44, 62, 80, 0.3); }
-  .result-area { display: none; margin-top: 25px; }
+  .result-area { display: none; margin-top: 25px; } /* 預設隱藏 */
   .metric-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee; }
   .metric-label { font-size: 13px; color: #555; flex: 1; }
   .metric-val { font-size: 20px; font-weight: bold; color: #2c3e50; text-align: right; }
@@ -39,34 +39,30 @@
   .footer { margin-top: 25px; font-size: 12px; color: #aaa; text-align: center; }
   #debugBox { background: #ffebee; color: #c62828; border: 2px solid #ef5350; padding: 15px; margin-bottom: 20px; border-radius: 8px; font-size: 14px; display: none; text-align: left; }
 
-  /* --- ★★★ 新增：全螢幕彈出視窗樣式 ★★★ --- */
+  /* --- 全螢幕視窗樣式 --- */
   #modalOverlay {
-    display: none; /* 預設隱藏 */
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: #f0f2f5; z-index: 9999;
-    animation: slideUp 0.3s ease-out;
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #f0f2f5; z-index: 9999; animation: slideUp 0.3s ease-out;
   }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-  /* 關閉按鈕列 */
   .modal-header {
     position: absolute; top: 0; left: 0; width: 100%; height: 50px;
     background: #2c3e50; display: flex; align-items: center; justify-content: space-between;
     padding: 0 15px; color: white; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   }
-  .close-btn {
-    background: none; border: none; color: white; font-size: 16px; cursor: pointer; font-weight: bold;
-  }
-  /* 內嵌網頁區域 */
-  .modal-body {
-    width: 100%; height: 100%; padding-top: 50px; /* 留空間給 header */
-    overflow: hidden;
-  }
+  .close-btn { background: none; border: none; color: white; font-size: 16px; cursor: pointer; font-weight: bold; }
+  .modal-body { width: 100%; height: 100%; padding-top: 50px; overflow: hidden; }
   iframe { width: 100%; height: 100%; border: none; }
   
-  /* 入口按鈕樣式 */
-  .entry-box { margin-top: 25px; border-top: 1px dashed #ccc; padding-top: 20px; text-align: center; }
-  .entry-btn { display: block; width: 100%; background: #fff; color: #2c3e50; border: 2px solid #2c3e50; padding: 14px; border-radius: 12px; text-decoration: none; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+  /* --- 入口按鈕樣式 (修改為更像按鈕) --- */
+  .entry-box { margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 20px; text-align: center; }
+  .entry-btn { 
+    display: block; width: 100%; background: #fff; color: #2c3e50; 
+    border: 2px solid #2c3e50; padding: 14px; border-radius: 12px; 
+    text-decoration: none; font-weight: bold; cursor: pointer; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.2s;
+  }
+  .entry-btn:active { transform: scale(0.98); background: #f8f9fa; }
 </style>
 </head>
 <body>
@@ -86,26 +82,30 @@
     <button class="btn" onclick="getLocation()">📍 啟動定位分析</button>
 
     <div id="output" class="result-area">
+      
       <div class="metric-row">
         <div class="metric-label">本週焦點<br><a href="#" id="goodLink" target="_blank" class="nav-link"><span id="goodName">讀取中...</span></a></div>
         <div class="metric-val" id="goodDist">...</div>
       </div>
+      
       <div class="metric-row">
         <div class="metric-label">對照指標<br><a href="#" id="badLink" target="_blank" class="nav-link"><span id="badName">讀取中...</span></a></div>
         <div class="metric-val" id="badDist">...</div>
       </div>
+
       <div id="chiefBox" class="chief-msg-box"><div style="color:#e91e63;font-weight:bold;margin-bottom:5px">📢 里長筆記</div><div id="chiefMsg"></div></div>
       <div id="analysisBox" class="analysis-box"><div id="roleBadge" class="role-badge"></div><div id="analysisText"></div></div>
+      
       <div class="action-group">
         <button class="btn-group btn-full" onclick="window.open('https://line.me/ti/g2/RaDs4ZL02O8n-_VpCNC1f-kW95ZBsvyveYEyAw')">👥 加入社群</button>
         <button class="btn-share btn-full" onclick="shareResult()">💬 分享結果</button>
       </div>
-    </div>
 
-    <div class="entry-box">
-        <p style="font-size:14px; color:#666; margin:0 0 10px 0;">想知道竹北還有哪些活動？</p>
-        <button class="entry-btn" onclick="openEvents()">📅 查看竹北市活動明細</button>
-    </div>
+      <div class="entry-box">
+          <p style="font-size:14px; color:#666; margin:0 0 10px 0;">想知道竹北還有哪些活動？</p>
+          <button class="entry-btn" onclick="openEvents()">📅 查看竹北市活動明細</button>
+      </div>
+      </div>
 
     <div class="footer">本工具僅供市政討論參考</div>
   </div>
@@ -123,7 +123,7 @@
 
 <script>
   // ★★★ 請貼上「天秤資料庫」的 CSV 網址 ★★★
-  var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtIyD2tguRY3fN-Pe9Fwe-07P_0MWG8G7Z6XNfOE9qpk2U-b_NjBRpA26o4FenSxkQMpbfvCLjyu46/pub?output=csv'; 
+  var sheetUrl = '請貼上天秤資料庫CSV'; 
   // ★★★★★★★★★★★★★★★★★★★★★★★
 
   var eventData = {
@@ -136,20 +136,15 @@
   };
   var shareText = "";
 
-  // --- 新增：控制彈出視窗的函式 ---
   function openEvents() {
     document.getElementById('modalOverlay').style.display = 'block';
-    // 禁止背景捲動
     document.body.style.overflow = 'hidden';
   }
-
   function closeEvents() {
     document.getElementById('modalOverlay').style.display = 'none';
-    // 恢復背景捲動
     document.body.style.overflow = 'auto';
   }
 
-  // --- 下方維持 V12 的邏輯 (讀取資料與計算) ---
   function showError(msg) {
     var box = document.getElementById('debugBox');
     box.style.display = 'block';
@@ -227,8 +222,12 @@
     else if (dGood < eventData.limitEast) { role = eventData.titleEast; text = eventData.textEast; style = "role-noble"; }
     shareText = "我離「" + eventData.badName + "」" + dBad.toFixed(1) + "km，離「" + eventData.name + "」" + dGood.toFixed(1) + "km。快來測：";
     var box = document.getElementById("analysisBox"); box.className = "analysis-box " + style;
-    document.getElementById("roleBadge").innerText = role; document.getElementById("analysisText").innerText = text; document.getElementById("output").style.display = "block";
+    document.getElementById("roleBadge").innerText = role; document.getElementById("analysisText").innerText = text; 
+    
+    // ★★★ 讓整個結果區（包含活動按鈕）出現 ★★★
+    document.getElementById("output").style.display = "block"; 
   }
+  
   function shareResult() { window.open('https://line.me/R/msg/text/?' + encodeURIComponent(shareText + "\n" + window.location.href)); }
   function getDist(lat1,lon1,lat2,lon2) { var R = 6371; var p = 0.017453292519943295; var a = 0.5 - Math.cos((lat2 - lat1) * p)/2 + Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p))/2; return 12742 * Math.asin(Math.sqrt(a)); }
 </script>
