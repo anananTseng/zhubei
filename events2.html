@@ -3,90 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>竹北市近期活動一覽表</title>
+    <title>竹北市活動情報站</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
         :root {
             --primary-color: #2c3e50;
             --accent-color: #27ae60;
-            --bg-color: #f8f9fa;
+            --bg-color: #f4f6f9;
             --card-bg: #ffffff;
             --text-color: #333;
             --gray-text: #666;
         }
         body { font-family: 'Noto Sans TC', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 0; line-height: 1.6; }
-        header { background: linear-gradient(135deg, var(--primary-color), #34495e); color: white; padding: 2rem 1rem; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        header h1 { margin: 0; font-size: 1.8rem; letter-spacing: 1px; }
-        header p { margin-top: 10px; opacity: 0.9; font-size: 0.95rem; }
-        .container { max-width: 1000px; margin: 2rem auto; padding: 0 15px; }
         
-        /* 篩選器樣式 */
+        /* Header 優化 */
+        header { background: linear-gradient(135deg, #1a2a3a, #2c3e50); color: white; padding: 2.5rem 1rem; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        header h1 { margin: 0; font-size: 2rem; letter-spacing: 2px; font-weight: 700; }
+        header p { margin-top: 10px; opacity: 0.85; font-size: 1rem; font-weight: 300; }
+
+        .container { max-width: 1100px; margin: 2rem auto; padding: 0 20px; }
+        
+        /* 篩選控制列 */
         .controls-bar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 15px;
+            margin-bottom: 2rem;
         }
-        .update-time { font-size: 0.85rem; color: #888; }
-        .filter-group { display: flex; align-items: center; gap: 10px; }
-        .filter-select {
+        .update-info { font-size: 0.9rem; color: #888; display: flex; align-items: center; }
+        .update-info::before { content: ''; display: inline-block; width: 8px; height: 8px; background-color: #2ecc71; border-radius: 50%; margin-right: 8px; }
+        
+        .filters { display: flex; gap: 15px; flex-wrap: wrap; }
+        .filter-group { display: flex; align-items: center; gap: 8px; }
+        .filter-group label { font-weight: 500; color: #555; font-size: 0.95rem; }
+        
+        select {
             padding: 8px 12px;
             border-radius: 6px;
             border: 1px solid #ddd;
             font-size: 0.95rem;
-            color: var(--text-color);
-            background-color: white;
+            color: #333;
+            background-color: #fff;
             cursor: pointer;
-            outline: none;
+            transition: border-color 0.2s;
         }
-        .filter-select:focus { border-color: var(--accent-color); }
+        select:hover { border-color: var(--accent-color); }
+        select:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1); }
 
-        #loading { text-align: center; padding: 2rem; font-size: 1.2rem; color: var(--gray-text); }
+        #loading { text-align: center; padding: 3rem; font-size: 1.2rem; color: var(--gray-text); }
+        
+        /* 卡片列表 */
         .event-list { display: grid; gap: 1.5rem; grid-template-columns: 1fr; }
-        @media (min-width: 768px) { .event-list { grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); } }
-        .event-card { background: var(--card-bg); border-radius: 10px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; border-left: 5px solid var(--accent-color); }
-        .event-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
-        .event-date { display: inline-block; background-color: #e8f5e9; color: #1b5e20; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-bottom: 10px; }
-        .event-title { font-size: 1.25rem; font-weight: 700; margin: 0 0 10px 0; color: var(--primary-color); }
-        .event-info { font-size: 0.95rem; color: var(--gray-text); margin-bottom: 5px; display: flex; align-items: center; }
-        .event-info svg { width: 16px; height: 16px; margin-right: 8px; fill: var(--gray-text); }
-        .btn-link { display: block; width: 100%; text-align: center; margin-top: 15px; padding: 10px 0; background-color: var(--primary-color); color: white; text-decoration: none; border-radius: 6px; font-weight: 500; transition: background 0.3s; }
+        @media (min-width: 768px) { .event-list { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); } }
+
+        .event-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        .event-card:hover { transform: translateY(-5px); box-shadow: 0 12px 20px rgba(0,0,0,0.08); border-color: transparent; }
+        
+        /* 分類標籤 */
+        .category-tag {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background-color: #f0f2f5;
+            color: #666;
+            font-weight: 600;
+        }
+        /* 針對不同分類給予不同顏色 (可選) */
+        .cat-celebration { background-color: #fff3cd; color: #856404; } /* 慶典-黃 */
+        .cat-art { background-color: #e2e3e5; color: #383d41; } /* 藝文-灰 */
+        .cat-lecture { background-color: #d1ecf1; color: #0c5460; } /* 講座-藍 */
+
+        .event-date {
+            color: var(--accent-color);
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .event-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 0 0 15px 0;
+            color: var(--primary-color);
+            line-height: 1.4;
+            flex-grow: 1; /* 讓標題撐開高度 */
+        }
+
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .info-icon {
+            min-width: 18px;
+            height: 18px;
+            margin-right: 10px;
+            margin-top: 3px;
+            fill: #888;
+        }
+
+        .btn-link {
+            margin-top: 20px;
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 10px 0;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
         .btn-link:hover { background-color: #34495e; }
-        .btn-link.disabled { background-color: #bdc3c7; cursor: not-allowed; pointer-events: none; opacity: 0.6; }
-        footer { text-align: center; padding: 2rem; font-size: 0.8rem; color: #aaa; margin-top: 3rem; border-top: 1px solid #eee; }
+        .btn-link.disabled { background-color: #e9ecef; color: #adb5bd; cursor: default; pointer-events: none; }
+
+        footer { text-align: center; padding: 3rem 1rem; font-size: 0.85rem; color: #999; margin-top: 2rem; border-top: 1px solid #eee; }
     </style>
 </head>
 <body>
+
     <header>
-        <h1>竹北市近期活動快訊</h1>
-        <p>彙整竹北最新藝文、親子與社區活動資訊</p>
+        <h1>竹北市活動情報站</h1>
+        <p>掌握城市脈動 · 享受美好生活</p>
     </header>
+
     <div class="container">
         <div class="controls-bar">
-            <div class="update-time" id="update-time">資料載入中...</div>
-            <div class="filter-group">
-                <label for="month-filter">月份篩選：</label>
-                <select id="month-filter" class="filter-select">
-                    <option value="all">顯示全部</option>
-                </select>
+            <div class="update-info" id="update-time">資料更新中...</div>
+            
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="month-filter">月份</label>
+                    <select id="month-filter">
+                        <option value="all">全部月份</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="cat-filter">類型</label>
+                    <select id="cat-filter">
+                        <option value="all">全部類型</option>
+                    </select>
+                </div>
             </div>
         </div>
 
-        <div id="loading">正在連線至 Google 資料庫...</div>
+        <div id="loading">正在讀取最新活動資料庫...</div>
         <div class="event-list" id="event-container"></div>
     </div>
+
     <footer>
-        <p>資料來源：網路公開資訊彙整 / 自動更新系統</p>
+        <p>資料來源：竹北市公所、新竹縣政府、各大售票平台彙整</p>
     </footer>
 
     <script>
-        // 請確認這是您正確的 Google Sheet CSV 發布連結
+        // 請確認您的 Google Sheet CSV 發布連結
         const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-St7MX96Iy6KCTUt15jzZEm2H8WVF8pK4iJj4qL7j2oTCxCKopoak0xgHq5RzjKNEmO7JgsXF389i/pub?output=csv";
 
-        let allEvents = []; // 儲存所有活動資料
+        let allEvents = [];
 
         function init() {
             Papa.parse(CSV_URL, {
@@ -95,62 +193,73 @@
                 skipEmptyLines: true,
                 complete: function(results) {
                     allEvents = results.data;
-                    generateMonthOptions(allEvents); // 生成月份選項
-                    renderEvents(allEvents); // 初始渲染全部
+                    initFilters(allEvents);
+                    renderEvents(allEvents);
                 },
                 error: function(err) {
                     console.error("Error:", err);
-                    document.getElementById('loading').innerHTML = "讀取失敗。<br>請確認 Google 試算表是否已正確「發布到網路」。";
+                    document.getElementById('loading').innerText = "讀取資料失敗，請檢查網路或檔案設定。";
                 }
             });
         }
 
-        // 自動從資料中提取月份並生成選項
-        function generateMonthOptions(data) {
+        function initFilters(data) {
             const monthSet = new Set();
+            const catSet = new Set();
+
             data.forEach(item => {
-                let dateKey = Object.keys(item).find(k => k.includes('日期')) || '活動日期';
-                let dateStr = item[dateKey] || '';
-                // 嘗試抓取 YYYY/MM 或 YYYY-MM
+                // 抓取日期
+                let dateStr = item['活動日期'] || item['日期'] || '';
                 let match = dateStr.match(/(\d{4})[\/\-](\d{1,2})/);
-                if (match) {
-                    monthSet.add(`${match[1]}年${match[2]}月`);
-                }
+                if (match) monthSet.add(`${match[1]}年${match[2]}月`);
+
+                // 抓取類別
+                let cat = item['活動類別'] || item['類別'] || item['分類'];
+                if (cat && cat.trim() !== '') catSet.add(cat.trim());
             });
 
-            // 排序月份 (舊 -> 新)
-            const sortedMonths = Array.from(monthSet).sort((a, b) => {
-                return a.localeCompare(b, 'zh-Hant-TW', { numeric: true });
+            // 生成月份選項 (排序)
+            const monthSelect = document.getElementById('month-filter');
+            Array.from(monthSet).sort((a, b) => a.localeCompare(b, 'zh-Hant-TW', { numeric: true })).forEach(m => {
+                monthSelect.add(new Option(m, m));
             });
 
-            const select = document.getElementById('month-filter');
-            sortedMonths.forEach(m => {
-                const option = document.createElement('option');
-                option.value = m;
-                option.innerText = m;
-                select.appendChild(option);
+            // 生成類別選項
+            const catSelect = document.getElementById('cat-filter');
+            Array.from(catSet).forEach(c => {
+                catSelect.add(new Option(c, c));
             });
 
-            // 監聽篩選變更
-            select.addEventListener('change', (e) => {
-                const selectedMonth = e.target.value;
-                if (selectedMonth === 'all') {
-                    renderEvents(allEvents);
-                } else {
-                    const filtered = allEvents.filter(item => {
-                        let dateKey = Object.keys(item).find(k => k.includes('日期')) || '活動日期';
-                        let dateStr = item[dateKey] || '';
-                        // 將 "2025年11月" 轉回 "2025/11" 或 "2025-11" 進行比對
-                        // 簡單比對：看日期字串是否包含該月份的數字部分
-                        // 為了精確，我們拆解選項中的年與月
-                        let [y, m] = selectedMonth.replace('年', '/').replace('月', '').split('/');
-                        // 補零處理 (如 1月 -> 01) 以防萬一，但通常 CSV 都是 2025/1/1 或 2025/11/1
-                        // 這裡採用寬鬆比對：只要日期欄位裡包含 "2025/11" 或 "2025-11" 就算
-                        return dateStr.includes(`${y}/${m}`) || dateStr.includes(`${y}-${m}`) || dateStr.includes(`${y}/${m.padStart(2, '0')}`);
-                    });
-                    renderEvents(filtered);
-                }
-            });
+            // 綁定監聽事件
+            const handleFilter = () => {
+                const mVal = monthSelect.value;
+                const cVal = catSelect.value;
+
+                const filtered = data.filter(item => {
+                    let dateStr = item['活動日期'] || '';
+                    let catStr = item['活動類別'] || '';
+                    
+                    // 月份比對
+                    let monthMatch = true;
+                    if (mVal !== 'all') {
+                        let [y, m] = mVal.replace('年', '/').replace('月', '').split('/');
+                        // 寬鬆比對：只要日期字串包含 2025/11 或 2025-11
+                        monthMatch = dateStr.includes(`${y}/${m}`) || dateStr.includes(`${y}-${m}`) || dateStr.includes(`${y}/${m.padStart(2,'0')}`);
+                    }
+
+                    // 類別比對
+                    let catMatch = true;
+                    if (cVal !== 'all') {
+                        catMatch = catStr.includes(cVal);
+                    }
+
+                    return monthMatch && catMatch;
+                });
+                renderEvents(filtered);
+            };
+
+            monthSelect.addEventListener('change', handleFilter);
+            catSelect.addEventListener('change', handleFilter);
         }
 
         function renderEvents(data) {
@@ -159,56 +268,56 @@
             const updateTime = document.getElementById('update-time');
             
             loading.style.display = 'none';
-            container.innerHTML = ''; // 清空目前列表
+            container.innerHTML = '';
 
             const now = new Date();
             updateTime.innerText = `更新時間：${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
 
             if (data.length === 0) {
-                container.innerHTML = '<p style="text-align:center; width:100%; color:#666;">該月份尚無活動資料。</p>';
+                container.innerHTML = '<div style="text-align:center; width:100%; padding:2rem; color:#888;">沒有符合條件的活動。</div>';
                 return;
             }
 
             data.forEach(item => {
-                let nameKey = Object.keys(item).find(k => k.includes('名稱')) || '活動名稱';
-                if (!item[nameKey] || item[nameKey].trim() === '') return;
+                // 欄位容錯處理
+                const name = item['活動名稱'] || item['名稱'];
+                if (!name) return;
 
-                let dateKey = Object.keys(item).find(k => k.includes('日期')) || '活動日期';
-                let placeKey = Object.keys(item).find(k => k.includes('地點') || k.includes('場地')) || '活動地點';
-                let orgKey = Object.keys(item).find(k => k.includes('主辦')) || '主辦單位';
-                let linkKey = Object.keys(item).find(k => k.includes('連結') || k.includes('網址') || k.includes('Link') || k.includes('url'));
+                const date = item['活動日期'] || '詳見內文';
+                const place = item['活動地點'] || item['地點'] || '詳見官網';
+                const org = item['主辦單位'] || item['主辦'] || '';
+                const cat = item['活動類別'] || '一般活動';
+                let link = item['連結'] || item['網址'] || '';
+                link = link.trim();
 
-                const date = item[dateKey] || '未定';
-                const name = item[nameKey];
-                const place = item[placeKey] || '地點待定';
-                const org = item[orgKey] || '相關單位';
-                
-                let rawLink = '';
-                if (linkKey && item[linkKey]) {
-                    rawLink = item[linkKey].trim();
-                }
+                // 設定類別顏色樣式
+                let catClass = '';
+                if (cat.includes('慶典') || cat.includes('戶外')) catClass = 'cat-celebration';
+                else if (cat.includes('藝文') || cat.includes('展')) catClass = 'cat-art';
+                else if (cat.includes('講座') || cat.includes('課程')) catClass = 'cat-lecture';
 
-                let linkBtn = '';
-                if (rawLink.toLowerCase().startsWith('http')) {
-                    linkBtn = `<a href="${rawLink}" target="_blank" class="btn-link">查看官方詳情</a>`;
-                } else {
-                    linkBtn = `<span class="btn-link disabled">暫無連結</span>`;
-                }
+                let linkHtml = link.startsWith('http') 
+                    ? `<a href="${link}" target="_blank" class="btn-link">查看活動詳情</a>`
+                    : `<div class="btn-link disabled">無連結資訊</div>`;
 
                 const card = document.createElement('div');
                 card.className = 'event-card';
                 card.innerHTML = `
-                    <div class="event-date">${date}</div>
+                    <span class="category-tag ${catClass}">${cat}</span>
+                    <div class="event-date">
+                        <svg class="info-icon" style="fill:var(--accent-color)" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
+                        ${date}
+                    </div>
                     <h3 class="event-title">${name}</h3>
-                    <div class="event-info">
-                        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                        ${place}
+                    <div class="info-row">
+                        <svg class="info-icon" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                        <span>${place}</span>
                     </div>
-                    <div class="event-info">
-                        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                        ${org}
+                    <div class="info-row">
+                        <svg class="info-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        <span>${org}</span>
                     </div>
-                    ${linkBtn}
+                    ${linkHtml}
                 `;
                 container.appendChild(card);
             });
