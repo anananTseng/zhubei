@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>竹北市活動明細</title>
+<style>
+  body { font-family: "Microsoft JhengHei", sans-serif; background-color: #f0f2f5; margin: 0; padding: 15px; color: #333; }
+  .container { max-width: 600px; margin: 0 auto; }
+  
+  /* 頂部導航 */
+  .nav-bar { display: flex; align-items: center; margin-bottom: 20px; }
+  .back-btn { 
+    text-decoration: none; background: #fff; color: #2c3e50; padding: 8px 15px; 
+    border-radius: 20px; font-weight: bold; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex; align-items: center;
+  }
+  .back-btn:before { content: "←"; margin-right: 5px; }
+  .page-title { margin-left: 15px; font-size: 18px; font-weight: bold; color: #2c3e50; }
+
+  /* 卡片列表 */
+  .event-list { display: flex; flex-direction: column; gap: 15px; }
+  
+  .event-card { 
+    background: #fff; border-radius: 12px; padding: 20px; 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid #bdc3c7; /* 預設灰色 */
+    transition: transform 0.2s; position: relative;
+  }
+  
+  /* 自動判斷顏色 */
+  .color-west { border-left-color: #27ae60; } /* 綠色 */
+  .color-east { border-left-color: #e67e22; } /* 橘色 */
+
+  .meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .date-badge { background: #2c3e50; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+  .organizer { font-size: 12px; color: #7f8c8d; background: #ecf0f1; padding: 4px 8px; border-radius: 4px; }
+  
+  .event-name { font-size: 18px; font-weight: bold; margin-bottom: 10px; line-height: 1.4; color: #2c3e50; }
+  
+  .loc-row { display: flex; align-items: center; color: #2980b9; font-size: 14px; margin-bottom: 15px; cursor: pointer; }
+  .loc-icon { margin-right: 5px; }
+  
+  .link-btn { 
+    display: block; text-align: center; background: #fff; border: 1px solid #2c3e50; 
+    color: #2c3e50; padding: 10px; border-radius: 8px; text-decoration: none; 
+    font-weight: bold; font-size: 14px; transition: 0.2s;
+  }
+  .link-btn:hover { background: #2c3e50; color: #fff; }
+  .no-link { display: none; } /* 沒連結就隱藏 */
+
+  .loading { text-align: center; color: #999; margin-top: 50px; }
+  .error-box { background: #ffebee; color: #c62828; padding: 15px; border-radius: 8px; text-align: center; display: none; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="nav-bar">
+    <a href="index.html" class="back-btn">回天秤主頁</a>
+    <div class="page-title">竹北市活動明細</div>
+  </div>
+
+  <div id="errorArea" class="error-box"></div>
+  <div id="list" class="event-list">
+    <div class="loading">正在載入最新活動資訊...</div>
+  </div>
+</div>
+
+<script>
+  // ★★★ 請貼上「竹北市活動明細」Excel 的 CSV 網址 ★★★
+  var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-St7MX96Iy6KCTUt15jzZEm2H8WVF8pK4iJj4qL7j2oTCxCKopoak0xgHq5RzjKNEmO7JgsXF389i/pub?output=csv'; 
+  // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+
+  // 強力 CSV 解析 (不怕逗號)
+  function parseCSV(text) {
+    const rows = []; let currentRow = []; let cell = ''; let inQuote = false;
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (c === '"') { inQuote = !inQuote; }
+        else if (c === ',' && !inQuote) { currentRow.push(cell.trim()); cell = ''; }
+        else if ((c === '\r' || c === '\n') && !inQuote) {
+            if (cell || currentRow.length) currentRow.push(cell.trim());
+            if (currentRow.length) rows.push(currentRow);
+            currentRow = []; cell = '';
+        } else { cell += c; }
+    }
+    if (cell || currentRow.length) { currentRow.push(cell.trim()); rows.push(currentRow); }
+    return rows;
+  }
+
+  window.onload = function() {
+    fetch(sheetUrl)
+      .then(res => { if(!res.ok) throw new Error("連線失敗"); return res.text(); })
+      .then(text => {
+        try {
+            var rows = parseCSV(text);
+            var html = "";
+            
+            // 從第 2 列開始讀取 (跳過標題)
+            for(var i=1; i<rows.length; i++) {
+                var col = rows[i];
+                // 確保至少有前 4 欄 (日期, 名稱, 主辦, 地點)
+                if(col.length < 4) continue;
+
+                var date = col[0];      // A欄
+                var title = col[1];     // B欄
+                var org = col[2];       // C欄
+                var loc = col[3];       // D欄
+                var link = col[4] || ""; // E欄 (可能為空)
+
+                // 自動判斷顏色 (根據地點文字)
+                var colorClass = "";
+                if(loc.includes("西區") || loc.includes("新月") || loc.includes("拔子窟")) colorClass = "color-west";
+                else if(loc.includes("東區") || loc.includes("水圳") || loc.includes("高鐵")) colorClass = "color-east";
+
+                // Google 導航連結
+                var mapLink = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(loc);
+
+                html += `
+                <div class="event-card ${colorClass}">
+                    <div class="meta-row">
+                        <span class="date-badge">${date}</span>
+                        <span class="organizer">${org}</span>
+                    </div>
+                    <div class="event-name">${title}</div>
+                    
+                    <div class="loc-row" onclick="window.open('${mapLink}')">
+                        <span class="loc-icon">📍</span>${loc} (導航)
+                    </div>
+
+                    ${link.startsWith('http') ? 
+                      `<a href="${link}" target="_blank" class="link-btn">🔗 查看官方資訊</a>` : 
+                      `<span class="no-link"></span>`
+                    }
+                </div>
+                `;
+            }
+            
+            if(html === "") html = "<div style='text-align:center;color:#999'>目前沒有活動資料</div>";
+            document.getElementById('list').innerHTML = html;
+
+        } catch(e) {
+            throw new Error("資料解析錯誤：" + e.message);
+        }
+      })
+      .catch(err => {
+        document.getElementById('list').style.display = 'none';
+        var box = document.getElementById('errorArea');
+        box.style.display = 'block';
+        box.innerHTML = "⚠️ 無法讀取資料庫<br>請檢查 Excel 網址是否正確發布為 CSV。";
+      });
+  };
+</script>
+</body>
+</html>
