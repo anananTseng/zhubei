@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>竹北資源天秤</title>
 <style>
-  /* 樣式保持不變 */
+  /* --- V12 原有樣式 (保持不變) --- */
   * { box-sizing: border-box; }
   body { 
     font-family: "Helvetica Neue", Helvetica, "Microsoft JhengHei", Arial, sans-serif; 
@@ -19,56 +19,54 @@
   }
   h2 { color: #2c3e50; margin: 0 0 5px 0; font-size: 22px; text-align: center; }
   .sub-header { font-size: 13px; color: #7f8c8d; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; text-align: center; }
-  
-  .live-tag { 
-    display: block; background: #e8f5e9; color: #2e7d32; padding: 8px; 
-    border-radius: 6px; font-size: 14px; font-weight: bold; margin-bottom: 20px; 
-    border: 1px solid #c8e6c9; text-align: center;
-  }
-  
-  .btn { 
-    background: #2c3e50; color: white; border: none; padding: 16px 0; 
-    font-size: 18px; border-radius: 12px; cursor: pointer; width: 100%; 
-    font-weight: bold; transition: 0.2s; box-shadow: 0 4px 12px rgba(44, 62, 80, 0.3);
-  }
-  .btn:active { transform: scale(0.98); }
-  
-  .result-area { display: none; margin-top: 25px; text-align: left; animation: popIn 0.4s ease-out; }
-  @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-  
-  .metric-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee; position: relative; }
+  .live-tag { display: block; background: #e8f5e9; color: #2e7d32; padding: 8px; border-radius: 6px; font-size: 14px; font-weight: bold; margin-bottom: 20px; border: 1px solid #c8e6c9; text-align: center; }
+  .btn { background: #2c3e50; color: white; border: none; padding: 16px 0; font-size: 18px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: bold; transition: 0.2s; box-shadow: 0 4px 12px rgba(44, 62, 80, 0.3); }
+  .result-area { display: none; margin-top: 25px; }
+  .metric-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee; }
   .metric-label { font-size: 13px; color: #555; flex: 1; }
   .metric-val { font-size: 20px; font-weight: bold; color: #2c3e50; text-align: right; }
-  
-  .nav-link { display: inline-flex; align-items: center; color: #2980b9; text-decoration: none; font-weight: bold; font-size: 13px; margin-top: 4px; padding: 4px 8px; background: #eef6fb; border-radius: 4px; transition: 0.2s; border: 1px solid #d6eaf8; }
-  .nav-link:hover { background: #d6eaf8; }
-  .nav-icon { margin-right: 4px; font-size: 14px; }
-
+  .nav-link { display: inline-flex; align-items: center; color: #2980b9; text-decoration: none; font-weight: bold; font-size: 13px; margin-top: 4px; padding: 4px 8px; background: #eef6fb; border-radius: 4px; }
   .chief-msg-box { margin-top: 20px; background: #fff5f8; padding: 15px; border-radius: 10px; border-left: 5px solid #e91e63; display: none; }
-  .chief-title { font-size: 13px; font-weight: bold; color: #e91e63; margin-bottom: 8px; }
-  .chief-content { font-size: 15px; color: #333; line-height: 1.6; }
-
   .analysis-box { margin-top: 20px; padding: 20px; border-radius: 10px; }
   .role-badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
-  .analysis-text { font-size: 15px; line-height: 1.6; font-weight: 500; }
-  
-  .role-guardian { background: #fff8e1; color: #856404; border: 1px solid #ffeeba; }
-  .role-guardian .role-badge { background: #ffc107; color: #fff; }
-  .role-noble { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
-  .role-noble .role-badge { background: #17a2b8; color: #fff; }
-  .role-citizen { background: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }
-  .role-citizen .role-badge { background: #6c757d; color: #fff; }
-  
+  .role-guardian { background: #fff8e1; color: #856404; }
+  .role-noble { background: #d1ecf1; color: #0c5460; }
+  .role-citizen { background: #e2e3e5; color: #383d41; }
   .action-group { margin-top: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .btn-full { grid-column: span 2; }
-  .btn-share { background: #06c755; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; }
-  .btn-group { background: #3498db; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; }
-  .btn-icon { margin-right: 6px; }
-
+  .btn-full { grid-column: span 2; padding: 12px; border-radius: 8px; border: none; color: white; font-weight: bold; cursor: pointer; }
+  .btn-share { background: #06c755; }
+  .btn-group { background: #3498db; }
   .footer { margin-top: 25px; font-size: 12px; color: #aaa; text-align: center; }
+  #debugBox { background: #ffebee; color: #c62828; border: 2px solid #ef5350; padding: 15px; margin-bottom: 20px; border-radius: 8px; font-size: 14px; display: none; text-align: left; }
+
+  /* --- ★★★ 新增：全螢幕彈出視窗樣式 ★★★ --- */
+  #modalOverlay {
+    display: none; /* 預設隱藏 */
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #f0f2f5; z-index: 9999;
+    animation: slideUp 0.3s ease-out;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  /* 關閉按鈕列 */
+  .modal-header {
+    position: absolute; top: 0; left: 0; width: 100%; height: 50px;
+    background: #2c3e50; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 15px; color: white; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+  .close-btn {
+    background: none; border: none; color: white; font-size: 16px; cursor: pointer; font-weight: bold;
+  }
+  /* 內嵌網頁區域 */
+  .modal-body {
+    width: 100%; height: 100%; padding-top: 50px; /* 留空間給 header */
+    overflow: hidden;
+  }
+  iframe { width: 100%; height: 100%; border: none; }
   
-  /* 錯誤訊息專用 */
-  .error-msg { color: red; font-size: 12px; margin-top: 10px; background: #ffe6e6; padding: 10px; border-radius: 5px; display: none; }
+  /* 入口按鈕樣式 */
+  .entry-box { margin-top: 25px; border-top: 1px dashed #ccc; padding-top: 20px; text-align: center; }
+  .entry-btn { display: block; width: 100%; background: #fff; color: #2c3e50; border: 2px solid #2c3e50; padding: 14px; border-radius: 12px; text-decoration: none; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 </style>
 </head>
 <body>
@@ -78,8 +76,8 @@
     <h2>⚖️ 竹北資源天秤</h2>
     <div class="sub-header">離您最近的真相是？</div>
     
+    <div id="debugBox"></div>
     <div id="eventStatus" class="live-tag">連線中...</div>
-    <div id="debugInfo" class="error-msg"></div>
     
     <p style="text-align: center; color: #666; font-size: 14px;">
       輸入位置，測測看這場活動<br>對您來說是「福利」還是「遙不可及」？
@@ -89,67 +87,48 @@
 
     <div id="output" class="result-area">
       <div class="metric-row">
-        <div class="metric-label">
-          離本週焦點<br>
-          <a href="#" id="goodLink" target="_blank" class="nav-link">
-            <span class="nav-icon">📍</span><span id="goodName">讀取中...</span>
-          </a>
-        </div>
+        <div class="metric-label">本週焦點<br><a href="#" id="goodLink" target="_blank" class="nav-link"><span id="goodName">讀取中...</span></a></div>
         <div class="metric-val" id="goodDist">...</div>
       </div>
-      
       <div class="metric-row">
-        <div class="metric-label">
-          離對照指標<br>
-          <a href="#" id="badLink" target="_blank" class="nav-link">
-            <span class="nav-icon">⚠️</span><span id="badName">讀取中...</span>
-          </a>
-        </div>
+        <div class="metric-label">對照指標<br><a href="#" id="badLink" target="_blank" class="nav-link"><span id="badName">讀取中...</span></a></div>
         <div class="metric-val" id="badDist">...</div>
       </div>
-
-      <div id="chiefBox" class="chief-msg-box">
-        <div class="chief-title">📢 里長筆記</div>
-        <div class="chief-content" id="chiefMsg">...</div>
-      </div>
-
-      <div id="analysisBox" class="analysis-box">
-        <div id="roleBadge" class="role-badge">分析中</div>
-        <div id="analysisText" class="analysis-text"></div>
-      </div>
-
-        <div class="action-group">
-        <button class="btn-group btn-full" onclick="joinLineGroup()">
-           <span class="btn-icon">👥</span> 加入竹北在地討論社群
-        </button>
-        <button class="btn-share btn-full" onclick="shareResult()">
-           <span class="btn-icon">💬</span> 一鍵分享檢測結果
-        </button>
-      </div>
-
-      <div style="margin-top: 25px; border-top: 1px dashed #ccc; padding-top: 20px; text-align: center;">
-          <p style="font-size:14px; color:#666; margin:0 0 10px 0;">想知道竹北最近還有哪些活動？</p>
-          <a href="events.html" style="display:block; background:#fff; color:#2c3e50; border:2px solid #2c3e50; padding:14px; border-radius:12px; text-decoration:none; font-weight:bold; transition:0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-             📅 查看竹北市活動明細
-          </a>
+      <div id="chiefBox" class="chief-msg-box"><div style="color:#e91e63;font-weight:bold;margin-bottom:5px">📢 里長筆記</div><div id="chiefMsg"></div></div>
+      <div id="analysisBox" class="analysis-box"><div id="roleBadge" class="role-badge"></div><div id="analysisText"></div></div>
+      <div class="action-group">
+        <button class="btn-group btn-full" onclick="window.open('https://line.me/ti/g2/RaDs4ZL02O8n-_VpCNC1f-kW95ZBsvyveYEyAw')">👥 加入社群</button>
+        <button class="btn-share btn-full" onclick="shareResult()">💬 分享結果</button>
       </div>
     </div>
+
+    <div class="entry-box">
+        <p style="font-size:14px; color:#666; margin:0 0 10px 0;">想知道竹北還有哪些活動？</p>
+        <button class="entry-btn" onclick="openEvents()">📅 查看竹北市活動明細</button>
+    </div>
+
     <div class="footer">本工具僅供市政討論參考</div>
   </div>
 </div>
 
+<div id="modalOverlay">
+  <div class="modal-header">
+    <span>📅 竹北活動情報站</span>
+    <button class="close-btn" onclick="closeEvents()">✕ 關閉返回</button>
+  </div>
+  <div class="modal-body">
+    <iframe src="events2.html"></iframe>
+  </div>
+</div>
+
 <script>
-  // ★★★ 請在這裡貼上您的 CSV 網址 ★★★
+  // ★★★ 請貼上「天秤資料庫」的 CSV 網址 ★★★
   var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtIyD2tguRY3fN-Pe9Fwe-07P_0MWG8G7Z6XNfOE9qpk2U-b_NjBRpA26o4FenSxkQMpbfvCLjyu46/pub?output=csv'; 
-  // ★★★★★★★★★★★★★★★★★★★★★
+  // ★★★★★★★★★★★★★★★★★★★★★★★
 
-  var lineGroupUrl = 'https://line.me/ti/g2/RaDs4ZL02O8n-_VpCNC1f-kW95ZBsvyveYEyAw?utm_source=invitation&utm_medium=link_copy&utm_campaign=default';
-
-  // 預設資料，防呆用
   var eventData = {
-    name: "資料讀取中", lat: 24.8135, lng: 121.0265,
-    badName: "資料讀取中", badLat: 24.8550, badLng: 120.9650,
-    chiefMsg: "",
+    name: "讀取中", lat: 24.8135, lng: 121.0265,
+    badName: "讀取中", badLat: 24.8550, badLng: 120.9650,
     limitWest: 3.5, limitEast: 3.0,
     titleWest: "城市守護者", textWest: "感謝您承擔了竹北的運轉重任。",
     titleEast: "資源核心區", textEast: "您位於竹北資源最豐富的區域。",
@@ -157,175 +136,101 @@
   };
   var shareText = "";
 
-  // ★★★ V11.0 核心：強力 CSV 解析器 (處理逗號與引號) ★★★
+  // --- 新增：控制彈出視窗的函式 ---
+  function openEvents() {
+    document.getElementById('modalOverlay').style.display = 'block';
+    // 禁止背景捲動
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeEvents() {
+    document.getElementById('modalOverlay').style.display = 'none';
+    // 恢復背景捲動
+    document.body.style.overflow = 'auto';
+  }
+
+  // --- 下方維持 V12 的邏輯 (讀取資料與計算) ---
+  function showError(msg) {
+    var box = document.getElementById('debugBox');
+    box.style.display = 'block';
+    box.innerHTML = "⚠️ <b>錯誤：</b>" + msg;
+    document.getElementById('eventStatus').innerText = "● 連線失敗";
+    document.getElementById('eventStatus').style.background = "#ffebee";
+    document.getElementById('eventStatus').style.color = "#c62828";
+  }
   function parseCSV(text) {
-    const rows = [];
-    let currentRow = [];
-    let currentCell = '';
-    let insideQuote = false;
-    
-    for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        const nextChar = text[i+1];
-        
-        if (char === '"') {
-            if (insideQuote && nextChar === '"') { // 處理雙引號轉義
-                currentCell += '"';
-                i++;
-            } else {
-                insideQuote = !insideQuote;
-            }
-        } else if (char === ',' && !insideQuote) {
-            currentRow.push(currentCell.trim());
-            currentCell = '';
-        } else if ((char === '\r' || char === '\n') && !insideQuote) {
-            if (currentCell || currentRow.length > 0) {
-                currentRow.push(currentCell.trim());
-                rows.push(currentRow);
-            }
-            currentRow = [];
-            currentCell = '';
-            if (char === '\r' && nextChar === '\n') i++;
-        } else {
-            currentCell += char;
-        }
+    var rows = []; var currentRow = []; var cell = ""; var inQuote = false;
+    for(var i=0; i<text.length; i++) {
+      var c = text[i];
+      if(c === '"') { inQuote = !inQuote; }
+      else if(c === ',' && !inQuote) { currentRow.push(cell); cell = ""; }
+      else if((c === '\r' || c === '\n') && !inQuote) {
+        if(cell || currentRow.length) currentRow.push(cell);
+        if(currentRow.length) rows.push(currentRow);
+        currentRow = []; cell = "";
+      } else { cell += c; }
     }
-    if (currentCell || currentRow.length > 0) {
-        currentRow.push(currentCell.trim());
-        rows.push(currentRow);
-    }
+    if(cell || currentRow.length) { currentRow.push(cell); rows.push(currentRow); }
     return rows;
   }
 
   window.onload = function() {
-    console.log("開始連線...");
+    if(sheetUrl.indexOf('output=csv') === -1) { showError("CSV網址錯誤"); return; }
+
     fetch(sheetUrl)
-      .then(response => {
-        if (!response.ok) throw new Error("網路回應失敗: " + response.status);
-        return response.text();
-      })
-      .then(data => {
+      .then(res => { if(!res.ok) throw new Error("網路錯誤"); return res.text(); })
+      .then(text => {
         try {
-            // 使用強力解析器
-            var rows = parseCSV(data);
-            
-            if (rows.length < 2) throw new Error("Excel 資料不足 2 列");
-            
-            var cols = rows[1]; // 讀取第 2 列 (Index 1)
-            
-            if(cols.length < 6) throw new Error("欄位數量不足 (至少要 A~F 欄)");
+          var rows = parseCSV(text);
+          if(rows.length < 2) throw new Error("Excel資料不足");
+          var cols = rows[1];
+          function clean(s) { return s ? s.trim() : ""; }
+          
+          eventData.name = clean(cols[0]);
+          eventData.lat = parseFloat(cols[1]);
+          eventData.lng = parseFloat(cols[2]);
+          eventData.badName = clean(cols[3]);
+          eventData.badLat = parseFloat(cols[4]);
+          eventData.badLng = parseFloat(cols[5]);
+          
+          if(cols[6]) eventData.chiefMsg = clean(cols[6]);
+          if(cols[7]) eventData.limitWest = parseFloat(cols[7]);
+          if(cols[8]) eventData.limitEast = parseFloat(cols[8]);
+          if(cols[9]) eventData.titleWest = clean(cols[9]);
+          if(cols[10]) eventData.textWest = clean(cols[10]);
+          if(cols[11]) eventData.titleEast = clean(cols[11]);
+          if(cols[12]) eventData.textEast = clean(cols[12]);
+          if(cols[13]) eventData.textNormal = clean(cols[13]);
 
-            // 賦值 (加入更多防錯檢查)
-            eventData.name = cols[0] || "無名稱";
-            eventData.lat = parseFloat(cols[1]) || 24.8135;
-            eventData.lng = parseFloat(cols[2]) || 121.0265;
-            eventData.badName = cols[3] || "無名稱";
-            eventData.badLat = parseFloat(cols[4]) || 24.8550;
-            eventData.badLng = parseFloat(cols[5]) || 120.9650;
-
-            if(cols[6]) eventData.chiefMsg = cols[6];
-
-            if(cols[7]) eventData.limitWest = parseFloat(cols[7]);
-            if(cols[8]) eventData.limitEast = parseFloat(cols[8]);
-            if(cols[9]) eventData.titleWest = cols[9];
-            if(cols[10]) eventData.textWest = cols[10];
-            if(cols[11]) eventData.titleEast = cols[11];
-            if(cols[12]) eventData.textEast = cols[12];
-            if(cols[13]) eventData.textNormal = cols[13];
-
-            // 更新畫面
-            document.getElementById('eventStatus').innerText = "● 本週熱點：" + eventData.name;
-            
-            // 使用標準 Google Maps 連結
-            var mapBase = "https://www.google.com/maps?q=";
-            document.getElementById('goodName').innerText = eventData.name + " (導航)";
-            document.getElementById('goodLink').href = mapBase + eventData.lat + "," + eventData.lng;
-            
-            document.getElementById('badName').innerText = eventData.badName + " (導航)";
-            document.getElementById('badLink').href = mapBase + eventData.badLat + "," + eventData.badLng;
-            
-        } catch(e) {
-            console.error(e);
-            document.getElementById('eventStatus').innerText = "⚠️ 資料讀取錯誤";
-            document.getElementById('debugInfo').style.display = "block";
-            document.getElementById('debugInfo').innerText = "錯誤詳情：" + e.message + "\n請確認 CSV 網址正確，且 Excel 至少有 A~F 欄資料。";
-        }
+          document.getElementById('eventStatus').innerText = "● 本週熱點：" + eventData.name;
+          document.getElementById('goodName').innerText = eventData.name + " (導航)";
+          document.getElementById('goodLink').href = "https://www.google.com/maps/search/?api=1&query=" + eventData.lat + "," + eventData.lng;
+          document.getElementById('badName').innerText = eventData.badName + " (導航)";
+          document.getElementById('badLink').href = "https://www.google.com/maps/search/?api=1&query=" + eventData.badLat + "," + eventData.badLng;
+        } catch(e) { showError(e.message); }
       })
-      .catch(err => {
-          console.error(err);
-          document.getElementById('eventStatus').innerText = "⚠️ 連線失敗";
-          document.getElementById('debugInfo').style.display = "block";
-          document.getElementById('debugInfo').innerText = "連線錯誤：無法讀取 Google 試算表。\n請檢查網址是否為 '逗號分隔值 (.csv)' 格式。\n目前網址：" + sheetUrl;
-      });
+      .catch(err => { showError(err.message); });
   };
 
-  function getLocation() {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(showPos, showErr);
-    } else {
-      alert("您的瀏覽器不支援定位功能，或權限被拒絕。");
-    }
-  }
-
+  function getLocation() { if (navigator.geolocation) navigator.geolocation.getCurrentPosition(showPos, showErr); else alert("不支援定位"); }
   function showPos(position) { calc(position.coords.latitude, position.coords.longitude); }
-  function showErr(error) { alert("定位失敗或拒絕授權。\n將為您切換至【西區模擬視角】。"); calc(24.845, 120.970); }
+  function showErr(error) { alert("切換至【西區模擬視角】"); calc(24.845, 120.970); }
 
   function calc(lat, lng) {
-    let dGood = getDist(lat, lng, eventData.lat, eventData.lng);
-    let dBad = getDist(lat, lng, eventData.badLat, eventData.badLng);
-    
+    var dGood = getDist(lat, lng, eventData.lat, eventData.lng);
+    var dBad = getDist(lat, lng, eventData.badLat, eventData.badLng);
     document.getElementById("goodDist").innerText = dGood.toFixed(1) + " km";
     document.getElementById("badDist").innerText = dBad.toFixed(1) + " km";
-    
-    if(eventData.chiefMsg) {
-      document.getElementById("chiefMsg").innerText = eventData.chiefMsg;
-      document.getElementById("chiefBox").style.display = "block";
-    }
-
-    let role = ""; let text = ""; let styleClass = "";
-    
-    if (dBad < eventData.limitWest) {
-      role = eventData.titleWest;
-      text = eventData.textWest;
-      styleClass = "role-guardian";
-      shareText = "😱 我家離「" + eventData.badName + "」只有 " + dBad.toFixed(1) + "km！但離「" + eventData.name + "」有 " + dGood.toFixed(1) + "km。快來測測：";
-    } 
-    else if (dGood < eventData.limitEast) {
-      role = eventData.titleEast;
-      text = eventData.textEast;
-      styleClass = "role-noble";
-      shareText = "✨ 我住在竹北資源核心區！離「" + eventData.name + "」只有 " + dGood.toFixed(1) + "km。快來測測你的資源距離：";
-    } 
-    else {
-      role = "一般市民";
-      text = eventData.textNormal; 
-      styleClass = "role-citizen";
-      shareText = "🤔 原來我離「" + eventData.name + "」有 " + dGood.toFixed(1) + "km。竹北的資源分配平均嗎？快來測測你的：";
-    }
-    
-    let box = document.getElementById("analysisBox");
-    box.className = "analysis-box " + styleClass;
-    document.getElementById("roleBadge").innerText = role;
-    document.getElementById("analysisText").innerText = text;
-    document.getElementById("output").style.display = "block";
+    if(eventData.chiefMsg) { document.getElementById("chiefMsg").innerText = eventData.chiefMsg; document.getElementById("chiefBox").style.display = "block"; }
+    var role = "一般市民", text = eventData.textNormal, style = "role-citizen";
+    if (dBad < eventData.limitWest) { role = eventData.titleWest; text = eventData.textWest; style = "role-guardian"; }
+    else if (dGood < eventData.limitEast) { role = eventData.titleEast; text = eventData.textEast; style = "role-noble"; }
+    shareText = "我離「" + eventData.badName + "」" + dBad.toFixed(1) + "km，離「" + eventData.name + "」" + dGood.toFixed(1) + "km。快來測：";
+    var box = document.getElementById("analysisBox"); box.className = "analysis-box " + style;
+    document.getElementById("roleBadge").innerText = role; document.getElementById("analysisText").innerText = text; document.getElementById("output").style.display = "block";
   }
-
-  function joinLineGroup() { window.open(lineGroupUrl); }
-
-  function shareResult() {
-    var url = window.location.href;
-    var finalMsg = shareText + "\n" + url;
-    window.open('https://line.me/R/msg/text/?' + encodeURIComponent(finalMsg));
-  }
-
-  function getDist(lat1,lon1,lat2,lon2) {
-    var R = 6371; 
-    var dLat = (lat2-lat1) * (Math.PI/180);
-    var dLon = (lon2-lon1) * (Math.PI/180);
-    var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1*(Math.PI/180)) * Math.cos(lat2*(Math.PI/180)) * Math.sin(dLon/2) * Math.sin(dLon/2);
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-    return R * c;
-  }
+  function shareResult() { window.open('https://line.me/R/msg/text/?' + encodeURIComponent(shareText + "\n" + window.location.href)); }
+  function getDist(lat1,lon1,lat2,lon2) { var R = 6371; var p = 0.017453292519943295; var a = 0.5 - Math.cos((lat2 - lat1) * p)/2 + Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p))/2; return 12742 * Math.asin(Math.sqrt(a)); }
 </script>
 </body>
 </html>
