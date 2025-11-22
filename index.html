@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>竹北資源天秤</title>
 <style>
-  /* --- V16.1 樣式表 --- */
+  /* --- V16.2 樣式表 --- */
   * { box-sizing: border-box; }
   body { 
     font-family: "Helvetica Neue", Helvetica, "Microsoft JhengHei", Arial, sans-serif; 
@@ -21,11 +21,14 @@
   h2 { color: #2c3e50; margin: 0 0 8px 0; font-size: 24px; text-align: center; letter-spacing: 1px; }
   .sub-header { font-size: 14px; color: #7f8c8d; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; text-align: center; line-height: 1.5; }
   
+  /* 狀態條 */
   .live-tag { display: block; background: #e8f5e9; color: #2e7d32; padding: 8px; border-radius: 6px; font-size: 14px; font-weight: bold; margin-bottom: 20px; border: 1px solid #c8e6c9; text-align: center; }
   
+  /* 按鈕樣式 */
   .btn { background: #2c3e50; color: white; border: none; padding: 16px 0; font-size: 18px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: bold; transition: 0.2s; box-shadow: 0 4px 12px rgba(44, 62, 80, 0.3); }
   .btn:active { transform: scale(0.98); }
   
+  /* 結果區域 (預設隱藏) */
   .result-area { display: none; margin-top: 25px; animation: fadeIn 0.5s; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -34,7 +37,7 @@
   .metric-val { font-size: 20px; font-weight: bold; color: #2c3e50; text-align: right; }
   .nav-link { display: inline-flex; align-items: center; color: #2980b9; text-decoration: none; font-weight: bold; font-size: 13px; margin-top: 4px; padding: 4px 8px; background: #eef6fb; border-radius: 4px; }
   
-  /* 土地公筆記區樣式 */
+  /* 土地公筆記區 */
   .chief-msg-box { margin-top: 20px; background: #fff5f8; padding: 15px; border-radius: 10px; border-left: 5px solid #e91e63; display: none; }
   .chief-title { font-size: 14px; font-weight: bold; color: #e91e63; margin-bottom: 8px; display: flex; align-items: center; }
   .chief-content { font-size: 15px; color: #333; line-height: 1.6; }
@@ -45,30 +48,30 @@
   .role-noble { background: #d1ecf1; color: #0c5460; }
   .role-citizen { background: #e2e3e5; color: #383d41; }
   
+  /* 按鈕群組 */
   .action-group { margin-top: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .btn-full { grid-column: span 2; padding: 12px; border-radius: 8px; border: none; color: white; font-weight: bold; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;}
   .btn-share { background: #06c755; }
   .btn-group { background: #3498db; }
   .btn-icon { margin-right: 8px; font-size: 18px; }
 
+  /* 活動入口 */
   .entry-box { margin-top: 25px; border-top: 1px dashed #ccc; padding-top: 20px; text-align: center; }
-  .entry-btn { 
-    display: block; width: 100%; background: #fff; color: #2c3e50; 
-    border: 2px solid #2c3e50; padding: 14px; border-radius: 12px; 
-    text-decoration: none; font-weight: bold; cursor: pointer; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.2s;
-  }
+  .entry-btn { display: block; width: 100%; background: #fff; color: #2c3e50; border: 2px solid #2c3e50; padding: 14px; border-radius: 12px; text-decoration: none; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.2s; }
   .entry-btn:active { transform: scale(0.98); background: #f8f9fa; }
 
   .footer { margin-top: 25px; font-size: 12px; color: #aaa; text-align: center; line-height: 1.6; }
   
+  /* 全螢幕視窗 */
   #modalOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f0f2f5; z-index: 9999; animation: slideUp 0.3s ease-out; }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
   .modal-header { position: absolute; top: 0; left: 0; width: 100%; height: 50px; background: #2c3e50; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; color: white; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
   .close-btn { background: none; border: none; color: white; font-size: 16px; cursor: pointer; font-weight: bold; }
   .modal-body { width: 100%; height: 100%; padding-top: 50px; overflow: hidden; }
   iframe { width: 100%; height: 100%; border: none; }
-  #debugBox { display: none; background: #ffebee; color: #c62828; padding: 10px; margin-bottom: 10px; border-radius: 5px; text-align: left; font-size: 13px;}
+  
+  /* 🔴 除錯區塊 (平常隱藏) */
+  #debugBox { display: none; background: #ffebee; color: #c62828; padding: 10px; margin-bottom: 10px; border-radius: 5px; text-align: left; font-size: 13px; border: 1px solid #ef5350; }
 </style>
 </head>
 <body>
@@ -123,7 +126,7 @@
     </div>
 
     <div class="footer">
-      數據僅供參考，<br>如有雷同......那就是西區日常。
+      這些數據不只是距離，<br>更是全體公職人員的成績單。<br>我們都做得不夠好，竹北值得更平衡的未來。
     </div>
   </div>
 </div>
@@ -139,11 +142,22 @@
 </div>
 
 <script>
+  // 全域錯誤監聽 (只要有錯，立刻顯示在螢幕上)
+  window.onerror = function(message, source, lineno, colno, error) {
+    var box = document.getElementById('debugBox');
+    box.style.display = 'block';
+    box.innerHTML = "⛔ <b>系統錯誤：</b><br>" + message;
+    document.getElementById('eventStatus').innerText = "● 程式執行失敗";
+    document.getElementById('eventStatus').style.background = "#ffebee";
+    document.getElementById('eventStatus').style.color = "#c62828";
+  };
+
+  // 天秤資料庫網址 (寫死)
   var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtIyD2tguRY3fN-Pe9Fwe-07P_0MWG8G7Z6XNfOE9qpk2U-b_NjBRpA26o4FenSxkQMpbfvCLjyu46/pub?output=csv'; 
 
   var eventData = {
-    name: "資料讀取中", lat: 24.8135, lng: 121.0265,
-    badName: "資料讀取中", badLat: 24.8550, badLng: 120.9650,
+    name: "讀取中", lat: 24.8135, lng: 121.0265,
+    badName: "讀取中", badLat: 24.8550, badLng: 120.9650,
     chiefMsg: "",
     limitWest: 3.5, limitEast: 3.0,
     titleWest: "城市守護者", textWest: "感謝您承擔了竹北的運轉重任。",
@@ -158,7 +172,7 @@
   function showError(msg) {
     var box = document.getElementById('debugBox');
     box.style.display = 'block';
-    box.innerHTML = "⚠️ " + msg;
+    box.innerHTML = "⚠️ <b>連線錯誤：</b><br>" + msg;
     document.getElementById('eventStatus').innerText = "● 連線失敗";
     document.getElementById('eventStatus').style.background = "#ffebee";
     document.getElementById('eventStatus').style.color = "#c62828";
@@ -179,3 +193,63 @@
     if(cell || currentRow.length) { currentRow.push(cell); rows.push(currentRow); }
     return rows;
   }
+
+  window.onload = function() {
+    fetch(sheetUrl)
+      .then(res => { if(!res.ok) throw new Error("網路回應錯誤 (Status " + res.status + ")"); return res.text(); })
+      .then(text => {
+        try {
+          var rows = parseCSV(text);
+          if(rows.length < 2) throw new Error("Excel 資料不足 2 列");
+          var cols = rows[1];
+          function clean(s) { return s ? s.trim() : ""; }
+          
+          eventData.name = clean(cols[0]);
+          eventData.lat = parseFloat(cols[1]);
+          eventData.lng = parseFloat(cols[2]);
+          eventData.badName = clean(cols[3]);
+          eventData.badLat = parseFloat(cols[4]);
+          eventData.badLng = parseFloat(cols[5]);
+          
+          if(cols[6]) eventData.chiefMsg = clean(cols[6]);
+          if(cols[7]) eventData.limitWest = parseFloat(cols[7]);
+          if(cols[8]) eventData.limitEast = parseFloat(cols[8]);
+          if(cols[9]) eventData.titleWest = clean(cols[9]);
+          if(cols[10]) eventData.textWest = clean(cols[10]);
+          if(cols[11]) eventData.titleEast = clean(cols[11]);
+          if(cols[12]) eventData.textEast = clean(cols[12]);
+          if(cols[13]) eventData.textNormal = clean(cols[13]);
+
+          document.getElementById('eventStatus').innerText = "● 本週熱點：" + eventData.name;
+          document.getElementById('goodName').innerText = eventData.name + " (導航)";
+          document.getElementById('goodLink').href = "https://www.google.com/maps/search/?api=1&query=" + eventData.lat + "," + eventData.lng;
+          document.getElementById('badName').innerText = eventData.badName + " (導航)";
+          document.getElementById('badLink').href = "https://www.google.com/maps/search/?api=1&query=" + eventData.badLat + "," + eventData.badLng;
+        } catch(e) { showError("資料解析失敗：" + e.message); }
+      })
+      .catch(err => { showError(err.message); });
+  };
+
+  function getLocation() { if (navigator.geolocation) navigator.geolocation.getCurrentPosition(showPos, showErr); else alert("不支援定位"); }
+  function showPos(position) { calc(position.coords.latitude, position.coords.longitude); }
+  function showErr(error) { alert("定位失敗，切換至【西區模擬視角】"); calc(24.845, 120.970); }
+
+  function calc(lat, lng) {
+    var dGood = getDist(lat, lng, eventData.lat, eventData.lng);
+    var dBad = getDist(lat, lng, eventData.badLat, eventData.badLng);
+    document.getElementById("goodDist").innerText = dGood.toFixed(1) + " km";
+    document.getElementById("badDist").innerText = dBad.toFixed(1) + " km";
+    if(eventData.chiefMsg) { document.getElementById("chiefMsg").innerText = eventData.chiefMsg; document.getElementById("chiefBox").style.display = "block"; }
+    var role = "一般市民", text = eventData.textNormal, style = "role-citizen";
+    if (dBad < eventData.limitWest) { role = eventData.titleWest; text = eventData.textWest; style = "role-guardian"; }
+    else if (dGood < eventData.limitEast) { role = eventData.titleEast; text = eventData.textEast; style = "role-noble"; }
+    shareText = "我離「" + eventData.badName + "」" + dBad.toFixed(1) + "km，離「" + eventData.name + "」" + dGood.toFixed(1) + "km。快來測：";
+    var box = document.getElementById("analysisBox"); box.className = "analysis-box " + style;
+    document.getElementById("roleBadge").innerText = role; document.getElementById("analysisText").innerText = text; 
+    document.getElementById("output").style.display = "block"; 
+  }
+  function shareResult() { window.open('https://line.me/R/msg/text/?' + encodeURIComponent(shareText + "\n" + window.location.href)); }
+  function getDist(lat1,lon1,lat2,lon2) { var R = 6371; var p = 0.017453292519943295; var a = 0.5 - Math.cos((lat2 - lat1) * p)/2 + Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p))/2; return 12742 * Math.asin(Math.sqrt(a)); }
+</script>
+</body>
+</html>
