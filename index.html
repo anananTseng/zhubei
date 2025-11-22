@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>竹北資源天秤</title>
 <style>
-  /* --- V16.0 西區土地公版 --- */
+  /* --- V16.1 樣式表 --- */
   * { box-sizing: border-box; }
   body { 
     font-family: "Helvetica Neue", Helvetica, "Microsoft JhengHei", Arial, sans-serif; 
@@ -123,7 +123,7 @@
     </div>
 
     <div class="footer">
-      這些數據不只是距離，<br>更是全體公職人員的成績單。<br>我們都做得不夠好，竹北值得更平衡的未來。
+      數據僅供參考，<br>如有雷同......那就是西區日常。
     </div>
   </div>
 </div>
@@ -139,7 +139,6 @@
 </div>
 
 <script>
-  // ★★★ 請確認網址 (直接寫死) ★★★
   var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQtIyD2tguRY3fN-Pe9Fwe-07P_0MWG8G7Z6XNfOE9qpk2U-b_NjBRpA26o4FenSxkQMpbfvCLjyu46/pub?output=csv'; 
 
   var eventData = {
@@ -180,63 +179,3 @@
     if(cell || currentRow.length) { currentRow.push(cell); rows.push(currentRow); }
     return rows;
   }
-
-  window.onload = function() {
-    fetch(sheetUrl)
-      .then(res => { if(!res.ok) throw new Error("網路回應錯誤"); return res.text(); })
-      .then(text => {
-        try {
-          var rows = parseCSV(text);
-          if(rows.length < 2) throw new Error("資料庫為空");
-          var cols = rows[1];
-          function clean(s) { return s ? s.trim() : ""; }
-          
-          eventData.name = clean(cols[0]);
-          eventData.lat = parseFloat(cols[1]);
-          eventData.lng = parseFloat(cols[2]);
-          eventData.badName = clean(cols[3]);
-          eventData.badLat = parseFloat(cols[4]);
-          eventData.badLng = parseFloat(cols[5]);
-          
-          if(cols[6]) eventData.chiefMsg = clean(cols[6]);
-          if(cols[7]) eventData.limitWest = parseFloat(cols[7]);
-          if(cols[8]) eventData.limitEast = parseFloat(cols[8]);
-          if(cols[9]) eventData.titleWest = clean(cols[9]);
-          if(cols[10]) eventData.textWest = clean(cols[10]);
-          if(cols[11]) eventData.titleEast = clean(cols[11]);
-          if(cols[12]) eventData.textEast = clean(cols[12]);
-          if(cols[13]) eventData.textNormal = clean(cols[13]);
-
-          document.getElementById('eventStatus').innerText = "● 本週熱點：" + eventData.name;
-          document.getElementById('goodName').innerText = eventData.name + " (導航)";
-          document.getElementById('goodLink').href = "https://www.google.com/maps/search/?api=1&query=" + eventData.lat + "," + eventData.lng;
-          document.getElementById('badName').innerText = eventData.badName + " (導航)";
-          document.getElementById('badLink').href = "https://www.google.com/maps/search/?api=1&query=" + eventData.badLat + "," + eventData.badLng;
-        } catch(e) { showError("資料解析錯誤：" + e.message); }
-      })
-      .catch(err => { showError("連線錯誤：" + err.message); });
-  };
-
-  function getLocation() { if (navigator.geolocation) navigator.geolocation.getCurrentPosition(showPos, showErr); else alert("不支援定位"); }
-  function showPos(position) { calc(position.coords.latitude, position.coords.longitude); }
-  function showErr(error) { alert("切換至【西區模擬視角】"); calc(24.845, 120.970); }
-
-  function calc(lat, lng) {
-    var dGood = getDist(lat, lng, eventData.lat, eventData.lng);
-    var dBad = getDist(lat, lng, eventData.badLat, eventData.badLng);
-    document.getElementById("goodDist").innerText = dGood.toFixed(1) + " km";
-    document.getElementById("badDist").innerText = dBad.toFixed(1) + " km";
-    if(eventData.chiefMsg) { document.getElementById("chiefMsg").innerText = eventData.chiefMsg; document.getElementById("chiefBox").style.display = "block"; }
-    var role = "一般市民", text = eventData.textNormal, style = "role-citizen";
-    if (dBad < eventData.limitWest) { role = eventData.titleWest; text = eventData.textWest; style = "role-guardian"; }
-    else if (dGood < eventData.limitEast) { role = eventData.titleEast; text = eventData.textEast; style = "role-noble"; }
-    shareText = "我離「" + eventData.badName + "」" + dBad.toFixed(1) + "km，離「" + eventData.name + "」" + dGood.toFixed(1) + "km。快來測：";
-    var box = document.getElementById("analysisBox"); box.className = "analysis-box " + style;
-    document.getElementById("roleBadge").innerText = role; document.getElementById("analysisText").innerText = text; 
-    document.getElementById("output").style.display = "block"; 
-  }
-  function shareResult() { window.open('https://line.me/R/msg/text/?' + encodeURIComponent(shareText + "\n" + window.location.href)); }
-  function getDist(lat1,lon1,lat2,lon2) { var R = 6371; var p = 0.017453292519943295; var a = 0.5 - Math.cos((lat2 - lat1) * p)/2 + Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p))/2; return 12742 * Math.asin(Math.sqrt(a)); }
-</script>
-</body>
-</html>
