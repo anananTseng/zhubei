@@ -25,7 +25,7 @@
         header h1 { margin: 0; font-size: 2rem; letter-spacing: 2px; font-weight: 700; }
         header p { margin-top: 10px; opacity: 0.85; font-size: 1rem; font-weight: 300; }
 
-        .container { max-width: 1100px; margin: 2rem auto; padding: 0 20px; padding-bottom: 80px; /* 預留底部空間 */ }
+        .container { max-width: 1100px; margin: 2rem auto; padding: 0 20px; padding-bottom: 80px; }
         
         /* 篩選列 */
         .controls-bar {
@@ -149,7 +149,7 @@
         const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-St7MX96Iy6KCTUt15jzZEm2H8WVF8pK4iJj4qL7j2oTCxCKopoak0xgHq5RzjKNEmO7JgsXF389i/pub?output=csv";
         
         // 2. 設定回報表單連結 (請替換成您的 Google Form 網址)
-        const FEEDBACK_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeYLGHSuV3Cv-whrW6CEZi9IQbi7qiyEJ_G4ulb4uBLE12feg/viewform?usp=header"; // <--- 請在此貼上您的表單網址
+        const FEEDBACK_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeYLGHSuV3Cv-whrW6CEZi9IQbi7qiyEJ_G4ulb4uBLE12feg/viewform?usp=header"; 
         // ==========================================
 
         document.getElementById('feedback-btn').href = FEEDBACK_URL;
@@ -162,7 +162,8 @@
                 complete: function(results) {
                     allEvents = results.data;
                     initFilters(allEvents);
-                    renderEvents(allEvents);
+                    // 這裡的 handleFilter 呼叫會根據 HTML 中的 selected 屬性，
+                    // 自動執行一次過濾，隱藏已結束的活動。
                 },
                 error: function(err) {
                     console.error("Error:", err);
@@ -216,7 +217,7 @@
                 const filtered = data.filter(item => {
                     const status = calculateStatus(item['活動日期'] || '');
                     
-                    // 預設過濾邏輯：如果選單是 "active"，則隱藏 "ended" 的活動
+                    // 核心邏輯：若狀態選單為 "active" (預設)，且活動狀態為 "ended"，則隱藏
                     if (sVal === 'active' && status.code === 'ended') return false;
                     
                     let monthMatch = true;
@@ -236,7 +237,7 @@
             catSelect.addEventListener('change', handleFilter);
             statusSelect.addEventListener('change', handleFilter);
             
-            // 頁面載入後立即執行一次，觸發預設的 Active 篩選
+            // 頁面載入後，立即執行一次篩選
             handleFilter(); 
         }
 
@@ -274,9 +275,10 @@
                 else if (cat.includes('藝文') || cat.includes('展')) catClass = 'cat-art';
                 else if (cat.includes('講座')) catClass = 'cat-lecture';
 
-                // 修正地圖連結的字串語法
+                // 產生 Google Maps 搜尋連結
                 let placeHtml = place;
                 if (place && place !== '詳見官網' && place !== '地點待定') {
+                    // 修正：補上 ${ } 語法
                     placeHtml = `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place)}" target="_blank" class="map-link" title="點擊導航">${place}</a>`;
                 }
 
